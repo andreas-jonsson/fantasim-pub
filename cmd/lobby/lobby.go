@@ -43,11 +43,11 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 		msg := v.(lobby.Message)
 
 		if msg.Data != "" {
-			fmt.Fprintf(&buf, `<img alt="%s" src="data:image/png;base64,%s"/>\n`, key, msg.Data)
+			fmt.Fprintf(&buf, `<img alt="%s" src="data:image/png;base64,%s"/>`, key, msg.Data)
 			fmt.Fprintln(&buf, "<br>")
 		}
 
-		fmt.Fprintf(&buf, `<a href="%s">%s</a>\n`, key, key)
+		fmt.Fprintf(&buf, `<a href="%s">%s</a>`, key, key)
 		fmt.Fprintln(&buf, "<br>")
 
 		return true
@@ -68,6 +68,18 @@ func main() {
 		log.Fatalln(err)
 	}
 	defer ln.Close()
+
+	go func() {
+		for range time.Tick(10 * time.Second) {
+			gameServers.Range(func(k, v interface{}) bool {
+				msg := v.(lobby.Message)
+				if time.Since(msg.Timestamp()) > time.Minute {
+					gameServers.Delete(k.(string))
+				}
+				return true
+			})
+		}
+	}()
 
 	go func() {
 		for {
@@ -92,12 +104,15 @@ func main() {
 					conn.Close()
 				}()
 
-				if err = conn.SetDeadline(time.Now().Add(time.Minute)); err != nil {
+				now := time.Now()
+				if err = conn.SetDeadline(now.Add(10 * time.Second)); err != nil {
 					gameServers.Delete(host)
 					return
 				}
 
 				var msg lobby.Message
+				msg.SetTimestamp(now)
+
 				if err := dec.Decode(&msg); err != nil {
 					gameServers.Delete(host)
 					return

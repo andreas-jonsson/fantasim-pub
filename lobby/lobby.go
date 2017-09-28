@@ -17,6 +17,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package lobby
 
+import "time"
+
 const TcpPort = 49149
 
 const (
@@ -28,4 +30,14 @@ type Message struct {
 	Type string `json:"type"`
 	Host string `json:"host"`
 	Data string `json:"data"`
+
+	timestamp time.Time
+}
+
+func (msg *Message) Timestamp() time.Time {
+	return msg.timestamp
+}
+
+func (msg *Message) SetTimestamp(t time.Time) {
+	msg.timestamp = t
 }
