@@ -42,16 +42,11 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 		key := k.(string)
 		msg := v.(lobby.Message)
 
-		fmt.Printf("data [%v]\n", msg.Data)
-
 		if msg.Data != "" {
-			fmt.Fprintf(&buf, `<img alt="%s" src="data:image/png;base64,%s"/>`, key, msg.Data)
-			fmt.Fprintln(&buf, "<br>")
+			fmt.Fprintf(&buf, `<img src="data:image/png;base64,%s"/><br>`, msg.Data)
 		}
 
-		fmt.Fprintf(&buf, `<a href="%s">%s</a>`, key, key)
-		fmt.Fprintln(&buf, "<br>")
-
+		fmt.Fprintf(&buf, `<a href="%s">%s</a><br>`, key, key)
 		return true
 	})
 
