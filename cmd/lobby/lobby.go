@@ -25,7 +25,6 @@ import (
 	"log"
 	"net"
 	"net/http"
-	"os"
 	"sync"
 	"time"
 
@@ -43,6 +42,8 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 		key := k.(string)
 		msg := v.(lobby.Message)
 
+		fmt.Printf("data [%v]\n", msg.Data)
+
 		if msg.Data != "" {
 			fmt.Fprintf(&buf, `<img alt="%s" src="data:image/png;base64,%s"/>`, key, msg.Data)
 			fmt.Fprintln(&buf, "<br>")
@@ -59,8 +60,6 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Length", fmt.Sprint(ln))
 	buf.WriteTo(w)
-
-	buf.WriteTo(os.Stdout)
 }
 
 var gameServers sync.Map
@@ -73,7 +72,7 @@ func main() {
 	defer ln.Close()
 
 	go func() {
-		for range time.Tick(10 * time.Second) {
+		for range time.Tick(time.Second) {
 			gameServers.Range(func(k, v interface{}) bool {
 				msg := v.(lobby.Message)
 				if time.Since(msg.Timestamp()) > time.Minute {
