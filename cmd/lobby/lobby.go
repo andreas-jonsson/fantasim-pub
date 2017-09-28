@@ -25,6 +25,7 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"os"
 	"sync"
 	"time"
 
@@ -58,6 +59,8 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Length", fmt.Sprint(ln))
 	buf.WriteTo(w)
+
+	buf.WriteTo(os.Stdout)
 }
 
 var gameServers sync.Map
