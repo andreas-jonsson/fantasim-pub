@@ -122,5 +122,7 @@ func main() {
 
 	http.HandleFunc("/", rootHandler)
 	log.Println("Webserver running...")
-	http.ListenAndServe(":80", nil)
+	if err := http.ListenAndServe(":80", nil); err != nil {
+		log.Fatalln(err)
+	}
 }
