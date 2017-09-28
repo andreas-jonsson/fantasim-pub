@@ -17,7 +17,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 package lobby
 
-const TcpPort = 10001
+const TcpPort = 49149
 
 const (
 	Ping  = "ping"
