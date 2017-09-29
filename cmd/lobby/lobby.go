@@ -71,7 +71,7 @@ func main() {
 		for range time.Tick(time.Second) {
 			gameServers.Range(func(k, v interface{}) bool {
 				msg := v.(lobby.Message)
-				if time.Since(msg.Timestamp()) > time.Minute {
+				if time.Since(msg.Timestamp()) > 30*time.Second {
 					gameServers.Delete(k.(string))
 				}
 				return true
