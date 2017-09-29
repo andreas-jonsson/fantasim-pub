@@ -28,6 +28,7 @@ const (
 
 type Message struct {
 	Type string `json:"type"`
+	Name string `json:"name"`
 	Host string `json:"host"`
 	Data string `json:"data"`
 

@@ -46,7 +46,7 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprintf(&buf, `<img src="data:image/png;base64,%s"/><br>`, msg.Data)
 		}
 
-		fmt.Fprintf(&buf, `<a href="%s">%s</a><br>`, key, key)
+		fmt.Fprintf(&buf, `<a href="http://%s">%s (%s)</a><br>`, key, msg.Name, key)
 		return true
 	})
 
@@ -118,6 +118,12 @@ func main() {
 				switch msg.Type {
 				case "ping":
 					host = msg.Host
+					if v, ok := gameServers.Load(host); ok {
+						data := v.(lobby.Message).Data
+						if data != "" && msg.Data == "" {
+							msg.Data = data
+						}
+					}
 					gameServers.Store(host, msg)
 				case "close":
 					err = errors.New("close message was sent from game server")
