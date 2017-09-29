@@ -37,13 +37,14 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 
 	var buf bytes.Buffer
 	fmt.Fprintln(&buf, `<!DOCTYPE html><html><head><title>Fantasim Servers</title></head><body>`)
+	fmt.Fprintln(&buf, `<h1>Fantasim Servers</h1>`)
 
 	gameServers.Range(func(k, v interface{}) bool {
 		key := k.(string)
 		msg := v.(lobby.Message)
 
 		if msg.Data != "" {
-			fmt.Fprintf(&buf, `<img src="data:image/png;base64,%s"/><br>`, msg.Data)
+			fmt.Fprintf(&buf, `<img width="128" height="128" src="data:image/png;base64,%s"/><br>`, msg.Data)
 		}
 
 		fmt.Fprintf(&buf, `<a href="http://%s">%s (%s)</a><br>`, key, msg.Name, key)
