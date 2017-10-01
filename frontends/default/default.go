@@ -19,13 +19,17 @@ package main
 
 import (
 	"encoding/json"
-	"log"
+	"errors"
+	"fmt"
+	"net/url"
 	"strconv"
-	"time"
+	"strings"
 
 	"github.com/gopherjs/gopherjs/js"
-	websocket "github.com/gopherjs/websocket"
+	"github.com/gopherjs/websocket"
 )
+
+const fantasimVersionString = "0.0.1"
 
 const (
 	imgWidth  = 320
@@ -36,6 +40,8 @@ const (
 var (
 	keys   = map[int]bool{}
 	canvas *js.Object
+
+	playerKey, playerName string
 )
 
 func throw(err error) {
@@ -49,7 +55,7 @@ func assert(err error) {
 	}
 }
 
-func setupConnection() {
+func setupConnection(host string) {
 	//ctx := canvas.Call("getContext", "2d")
 	//img := ctx.Call("getImageData", 0, 0, imgWidth, imgHeight)
 
@@ -57,37 +63,30 @@ func setupConnection() {
 	//	throw(errors.New("data size of images do not match"))
 	//}
 
-	//document := js.Global.Get("document")
-	//location := document.Get("location")
-
-	//ws, err := websocket.Dial(fmt.Sprintf("ws://%s/game", location.Get("host")))
-	ws, err := websocket.Dial("ws://localhost/game")
+	ws, err := websocket.Dial(fmt.Sprintf("ws://%s/api", host))
+	//ws, err := websocket.Dial("ws://localhost/api")
 	assert(err)
+	defer ws.Close()
 
 	go func() {
 		enc := json.NewEncoder(ws)
-		for {
-			err := enc.Encode("12345")
-			assert(err)
+		assert(enc.Encode(&playerKey))
 
-			time.Sleep(1 * time.Second)
-		}
+		fmt.Println("encodeing done!")
 	}()
 
-	go func() {
-		dec := json.NewDecoder(ws)
-		for {
-			tok, err := dec.Token()
-			assert(err)
+	dec := json.NewDecoder(ws)
 
-			switch v := tok.(type) {
-			case string:
-				log.Println(v)
-			default:
-				log.Println("Unknown type.")
-			}
-		}
-	}()
+	var version string
+	assert(dec.Decode(&version))
+	if version != fantasimVersionString {
+		throw(fmt.Errorf("invalid version %s, expected %s", version, fantasimVersionString))
+	}
+
+	fmt.Println("decodeing done!")
+
+	for {
+	}
 }
 
 func updateTitle() {
@@ -96,6 +95,18 @@ func updateTitle() {
 
 func load() {
 	document := js.Global.Get("document")
+
+	location := js.Global.Get("location")
+	urlStr := strings.TrimPrefix(location.Get("search").String(), "?")
+	v, err := url.ParseQuery(urlStr)
+	assert(err)
+
+	playerKey = v.Get("key")
+	playerName = v.Get("name")
+
+	if playerKey == "" || playerName == "" {
+		throw(errors.New("invalid parameters"))
+	}
 
 	document.Set("onkeydown", func(e *js.Object) {
 		keys[e.Get("keyCode").Int()] = true
@@ -112,7 +123,7 @@ func load() {
 	canvas.Get("style").Set("height", strconv.Itoa(imgHeight*imgScale)+"px")
 	document.Get("body").Call("appendChild", canvas)
 
-	setupConnection()
+	setupConnection(location.Get("host").String())
 }
 
 func main() {
