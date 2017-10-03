@@ -1,3 +1,5 @@
+// +build ignore
+
 /*
 Copyright (C) 2017 Andreas T Jonsson
 
@@ -15,28 +17,22 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package lobby
+package main
 
-import "time"
+import (
+	"log"
+	"net/http"
 
-const (
-	Ping  = "ping"
-	Close = "close"
+	"github.com/shurcooL/vfsgen"
 )
 
-type Message struct {
-	Type string `json:"type"`
-	Name string `json:"name"`
-	Host string `json:"host"`
-	Data string `json:"data"`
-
-	timestamp time.Time
-}
-
-func (msg *Message) Timestamp() time.Time {
-	return msg.timestamp
-}
-
-func (msg *Message) SetTimestamp(t time.Time) {
-	msg.timestamp = t
+func main() {
+	err := vfsgen.Generate(http.Dir("data/src"), vfsgen.Options{
+		Filename:     "data/data.go",
+		PackageName:  "data",
+		VariableName: "FS",
+	})
+	if err != nil {
+		log.Fatalln(err)
+	}
 }
