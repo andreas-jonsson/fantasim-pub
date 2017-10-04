@@ -19,16 +19,18 @@ package main
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"sync"
 	"time"
-
-	"github.com/andreas-jonsson/fantasim-pub/lobby"
-	"golang.org/x/net/websocket"
 )
+
+type gameServer struct {
+	name, host, thumbnail string
+	timestamp             time.Time
+}
 
 func noCacheFunc(handle func(http.ResponseWriter, *http.Request)) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -51,13 +53,13 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 
 	gameServers.Range(func(k, v interface{}) bool {
 		key := k.(string)
-		msg := v.(lobby.Message)
+		srv := v.(gameServer)
 
-		if msg.Data != "" {
-			fmt.Fprintf(&buf, `<img width="128" height="128" src="data:image/png;base64,%s"/><br>`, msg.Data)
+		if srv.thumbnail != "" {
+			fmt.Fprintf(&buf, `<img width="128" height="128" src="data:image/png;base64,%s"/><br>`, srv.thumbnail)
 		}
 
-		fmt.Fprintf(&buf, `<a href="http://%s">%s (%s)</a><br>`, key, msg.Name, key)
+		fmt.Fprintf(&buf, `<a href="http://%s">%s (%s)</a><br>`, key, srv.name, key)
 		return true
 	})
 
@@ -68,34 +70,60 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 	buf.WriteTo(w)
 }
 
-func wsHandler(ws *websocket.Conn) {
-	defer func() {
-		ws.Close()
-	}()
+func pingHandler(w http.ResponseWriter, r *http.Request) {
+	srv := gameServer{timestamp: time.Now()}
+	values := r.URL.Query()
 
-	var msg lobby.Message
-	msg.SetTimestamp(time.Now())
+	srv.host = values.Get("host")
+	if srv.host == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	srv.name = values.Get("name")
 
-	dec := json.NewDecoder(ws)
-	if err := dec.Decode(&msg); err != nil {
+	if v, ok := gameServers.Load(srv.host); ok {
+		s := v.(gameServer)
+		srv.thumbnail = s.thumbnail
+
+		if srv.name == "" {
+			srv.name = s.name
+		}
+	}
+
+	gameServers.Store(srv.host, srv)
+}
+
+func thumbnailHandler(w http.ResponseWriter, r *http.Request) {
+	srv := gameServer{timestamp: time.Now()}
+	values := r.URL.Query()
+
+	srv.host = values.Get("host")
+	if srv.host == "" {
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	switch msg.Type {
-	case "ping":
-		if v, ok := gameServers.Load(msg.Host); ok {
-			data := v.(lobby.Message).Data
-			if data != "" && msg.Data == "" {
-				msg.Data = data
-			}
-		}
-		gameServers.Store(msg.Host, msg)
-	case "close":
-		fmt.Println("close message was sent from game server")
-		gameServers.Delete(msg.Host)
-	default:
-		fmt.Printf("invalid message type: %s\n", msg.Type)
-		gameServers.Delete(msg.Host)
+	data, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	r.Body.Close()
+	srv.thumbnail = string(data)
+
+	if v, ok := gameServers.Load(srv.host); ok {
+		srv.name = v.(gameServer).name
+	}
+
+	gameServers.Store(srv.host, srv)
+}
+
+func closeHandler(w http.ResponseWriter, r *http.Request) {
+	host := r.URL.Query().Get("host")
+	if host == "" {
+		w.WriteHeader(http.StatusBadRequest)
+	} else {
+		gameServers.Delete(host)
 	}
 }
 
@@ -105,8 +133,8 @@ func main() {
 	go func() {
 		for range time.Tick(time.Second) {
 			gameServers.Range(func(k, v interface{}) bool {
-				msg := v.(lobby.Message)
-				if time.Since(msg.Timestamp()) > 30*time.Second {
+				srv := v.(gameServer)
+				if time.Since(srv.timestamp) > 30*time.Second {
 					gameServers.Delete(k.(string))
 				}
 				return true
@@ -115,7 +143,9 @@ func main() {
 	}()
 
 	http.HandleFunc("/", noCacheFunc(rootHandler))
-	http.Handle("/ws", websocket.Handler(wsHandler))
+	http.HandleFunc("/ping", noCacheFunc(pingHandler))
+	http.HandleFunc("/thumbnail", noCacheFunc(thumbnailHandler))
+	http.HandleFunc("/close", noCacheFunc(closeHandler))
 
 	log.Println("Webserver running...")
 	if err := http.ListenAndServe(":80", nil); err != nil {
