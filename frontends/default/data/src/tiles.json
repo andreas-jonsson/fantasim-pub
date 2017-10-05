@@ -1,0 +1,22 @@
+{
+    "default": {
+        "source": "Bisasam_16x16.png",
+        "tile_size": 16,
+
+        "mapping": {
+            "water_tile": 176,
+            "grass_tile": 176
+        }
+    },
+
+    "tiles": {
+        "source": "tileset_1bit.png",
+        "tile_size": 16,
+
+        "mapping": {
+            "water": 17,
+            "tree": 7,
+            "grass": 6
+        }
+    }
+}

@@ -23,9 +23,16 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"image"
+	"image/color"
+	"image/png"
 	"net/url"
-	"strconv"
 	"strings"
+	"time"
+
+	"github.com/andreas-jonsson/fantasim-pub/api"
+	"github.com/andreas-jonsson/fantasim-pub/frontends/default/data"
+	"github.com/andreas-jonsson/fantasim-pub/frontends/default/renderer"
 
 	"github.com/gopherjs/gopherjs/js"
 	"github.com/gopherjs/websocket"
@@ -38,6 +45,8 @@ const (
 	imgHeight = 200
 	imgScale  = 1
 )
+
+var idCounter uint64
 
 var (
 	keys   = map[int]bool{}
@@ -57,27 +66,91 @@ func assert(err error) {
 	}
 }
 
-func setupConnection(host string) {
-	//ctx := canvas.Call("getContext", "2d")
-	//img := ctx.Call("getImageData", 0, 0, imgWidth, imgHeight)
+func newId() uint64 {
+	idCounter++
+	return idCounter
+}
 
-	//if img.Get("data").Length() != len(finalImage.Pix) {
-	//	throw(errors.New("data size of images do not match"))
-	//}
+func decodePNG(name string) (*image.Paletted, error) {
+	fp, err := data.FS.Open(name)
+	if err != nil {
+		return nil, err
+	}
+	defer fp.Close()
 
+	img, err := png.Decode(fp)
+	if err != nil {
+		return nil, err
+	}
+
+	pimg, ok := img.(*image.Paletted)
+	if !ok {
+		return nil, fmt.Errorf("%s was not a paletted image", name)
+	}
+
+	return pimg, nil
+}
+
+var tilesetRegister = make(map[string]map[string]*image.Paletted)
+
+func buildTilesets() error {
+	fp, err := data.FS.Open("tiles.json")
+	if err != nil {
+		return err
+	}
+	defer fp.Close()
+
+	var tilesets map[string]struct {
+		Source   string         `json:"source"`
+		TileSize int            `json:"tile_size"`
+		Mapping  map[string]int `json:"mapping"`
+	}
+
+	dec := json.NewDecoder(fp)
+	if err := dec.Decode(&tilesets); err != nil {
+		return err
+	}
+
+	for setName, tileset := range tilesets {
+		img, err := decodePNG(tileset.Source)
+		if err != nil {
+			return err
+		}
+
+		sz := img.Bounds().Size()
+		tileSize := tileset.TileSize
+		numTiles := sz.X / tileSize
+
+		set := make(map[string]*image.Paletted)
+		tilesetRegister[setName] = set
+
+		for tileName, offset := range tileset.Mapping {
+			y := offset / numTiles
+			x := offset % numTiles
+
+			x *= tileSize
+			y *= tileSize
+
+			set[tileName] = img.SubImage(image.Rect(x, y, x+16, y+16)).(*image.Paletted)
+		}
+	}
+
+	return nil
+}
+
+func setupConnection(host string, renderer *renderer.Renderer) {
 	ws, err := websocket.Dial(fmt.Sprintf("ws://%s/api", host))
-	//ws, err := websocket.Dial("ws://localhost/api")
 	assert(err)
 	defer ws.Close()
 
-	go func() {
-		enc := json.NewEncoder(ws)
-		assert(enc.Encode(&playerKey))
+	sz := renderer.BackBuffer().Bounds().Size()
+	viewportSize := image.Pt(sz.X/16, sz.Y/16)
+	cameraPos := image.Pt(0, 0)
 
-		fmt.Println("encodeing done!")
-	}()
-
+	enc := json.NewEncoder(ws)
 	dec := json.NewDecoder(ws)
+
+	assert(enc.Encode(&playerKey))
 
 	var version string
 	assert(dec.Decode(&version))
@@ -85,9 +158,73 @@ func setupConnection(host string) {
 		throw(fmt.Errorf("invalid version %s, expected %s", version, fantasimVersionString))
 	}
 
-	fmt.Println("decodeing done!")
+	cvr := api.CreateViewRequest{
+		X: cameraPos.X,
+		Y: cameraPos.Y,
+		W: cameraPos.X + viewportSize.X,
+		H: cameraPos.Y + viewportSize.Y,
+	}
 
-	for {
+	assert(api.EncodeRequest(enc, &cvr, 0))
+	obj, _, err := api.DecodeResponse(dec)
+	assert(err)
+
+	viewID := obj.(*api.CreateViewResponse).ViewID
+
+	for range time.Tick(time.Second / 15) {
+
+		cameraPos.X++
+		cameraPos.Y++
+
+		uvr := api.UpdateViewRequest{ViewID: viewID, X: cameraPos.X, Y: cameraPos.Y}
+		assert(api.EncodeRequest(enc, &uvr, 0))
+		_, _, err := api.DecodeResponse(dec)
+		assert(err)
+
+		rvr := api.ReadViewRequest{ViewID: viewID}
+		assert(api.EncodeRequest(enc, &rvr, 0))
+		obj, _, err := api.DecodeResponse(dec)
+		assert(err)
+
+		rvresp := obj.(*api.ReadViewResponse)
+		tileReg := tilesetRegister["tiles"]
+
+		treeColor := color.RGBA{G: 0xFF, A: 0xFF}
+		waterColor := color.RGBA{B: 0xFF, A: 0xFF}
+
+		renderer.Clear()
+
+		for y := 0; y < cvr.H; y++ {
+			for x := 0; x < cvr.W; x++ {
+				tileData := rvresp.Data[y*cvr.W+x]
+
+				var (
+					tile   *image.Paletted
+					fg, bg color.RGBA
+				)
+
+				switch tileData.Surface {
+				case "water":
+					tile = tileReg["water"]
+					fg = waterColor
+					bg = color.RGBA{B: tileData.Height, A: 0xFF}
+				case "tree":
+					tile = tileReg["tree"]
+					fg = treeColor
+					bg = color.RGBA{G: tileData.Height, A: 0xFF}
+				case "grass":
+					tile = tileReg["grass"]
+					fg = treeColor
+					bg = color.RGBA{G: tileData.Height, A: 0xFF}
+				default:
+					continue
+				}
+
+				renderer.Blit(image.Pt(x*16, y*16), tile, fg, bg)
+			}
+		}
+
+		renderer.Present()
 	}
 }
 
@@ -118,14 +255,10 @@ func load() {
 		keys[e.Get("keyCode").Int()] = false
 	})
 
-	canvas = document.Call("createElement", "canvas")
-	canvas.Call("setAttribute", "width", strconv.Itoa(imgWidth))
-	canvas.Call("setAttribute", "height", strconv.Itoa(imgHeight))
-	canvas.Get("style").Set("width", strconv.Itoa(imgWidth*imgScale)+"px")
-	canvas.Get("style").Set("height", strconv.Itoa(imgHeight*imgScale)+"px")
-	document.Get("body").Call("appendChild", canvas)
+	renderer := renderer.NewRenderer(640, 360)
 
-	setupConnection(location.Get("host").String())
+	assert(buildTilesets())
+	setupConnection(location.Get("host").String(), renderer)
 }
 
 func main() {

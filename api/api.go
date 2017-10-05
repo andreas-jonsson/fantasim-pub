@@ -52,10 +52,25 @@ type DestroyViewRequest struct {
 
 type DestroyViewResponse Empty
 
-type ReadViewRequest Empty
+type UpdateViewRequest struct {
+	ViewID int `json:"view_id"`
+	X      int `json:"x"`
+	Y      int `json:"y"`
+}
+
+type UpdateViewResponse Empty
+
+type ReadViewRequest struct {
+	ViewID int `json:"view_id"`
+}
+
+type ReadViewData struct {
+	Surface string `json:"surface"`
+	Height  uint8  `json:"height"`
+}
 
 type ReadViewResponse struct {
-	Data []byte `json:"data"`
+	Data []ReadViewData `json:"data"`
 }
 
 var (
@@ -81,10 +96,13 @@ func init() {
 	registerType(requestTypeRegistry, CloseRequest{})
 	registerType(requestTypeRegistry, CreateViewRequest{})
 	registerType(requestTypeRegistry, DestroyViewRequest{})
+	registerType(requestTypeRegistry, UpdateViewRequest{})
 	registerType(requestTypeRegistry, ReadViewRequest{})
 
+	registerType(responseTypeRegistry, Empty{})
 	registerType(responseTypeRegistry, CreateViewResponse{})
 	registerType(responseTypeRegistry, DestroyViewResponse{})
+	registerType(responseTypeRegistry, UpdateViewResponse{})
 	registerType(responseTypeRegistry, ReadViewResponse{})
 }
 
@@ -102,7 +120,7 @@ func decode(dec *json.Decoder, m map[string]reflect.Type, op string) (interface{
 		return obj, header.Id, err
 	}
 
-	obj := reflect.New(t)
+	obj := reflect.New(t).Interface()
 	return obj, header.Id, dec.Decode(&obj)
 }
 

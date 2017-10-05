@@ -20,19 +20,31 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 package main
 
 import (
+	"io/ioutil"
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/shurcooL/vfsgen"
 )
 
 func main() {
+	const outputFile = "data/data.go"
 	err := vfsgen.Generate(http.Dir("data/src"), vfsgen.Options{
-		Filename:     "data/data.go",
+		Filename:     outputFile,
 		PackageName:  "data",
 		VariableName: "FS",
 	})
 	if err != nil {
+		log.Fatalln(err)
+	}
+
+	data, err := ioutil.ReadFile(outputFile)
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	if err := ioutil.WriteFile(outputFile, []byte(strings.Replace(string(data), "vfsgen۰", "vfsgen_", -1)), 0644); err != nil {
 		log.Fatalln(err)
 	}
 }
