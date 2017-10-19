@@ -23,6 +23,21 @@ import (
 	"reflect"
 )
 
+type TileFlag uint8
+
+const (
+	Water TileFlag = 1 << iota
+	Snow
+	Tree
+	Bush
+	Plant
+	Stone
+)
+
+func (flags TileFlag) Is(f TileFlag) bool {
+	return flags&f != 0
+}
+
 type Header struct {
 	Type string `json:"type"`
 	Id   int    `json:"id"`
@@ -65,8 +80,8 @@ type ReadViewRequest struct {
 }
 
 type ReadViewData struct {
-	Surface string `json:"surface"`
-	Height  uint8  `json:"height"`
+	Flags  TileFlag `json:"flags"`
+	Height uint8    `json:"height"`
 }
 
 type ReadViewResponse struct {
