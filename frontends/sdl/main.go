@@ -299,6 +299,10 @@ func startGame(conn io.ReadWriter) error {
 				case f.Is(api.Snow):
 					tile = tileReg["none"]
 					fg = snowBgColor(wx, wy)
+				case f.Is(api.Sand):
+					tile = tileReg["water"]
+					fg = color.RGBA{R: 107, G: 183, B: 189, A: 0xFF}
+					bg = color.RGBA{R: 75, G: 150, B: 150, A: 0xFF}
 				default:
 					tile = tileReg["none"]
 					fg = grassBgColor(wx, wy)

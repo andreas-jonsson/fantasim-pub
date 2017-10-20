@@ -27,6 +27,7 @@ type TileFlag uint8
 
 const (
 	Water TileFlag = 1 << iota
+	Sand
 	Snow
 	Tree
 	Bush
