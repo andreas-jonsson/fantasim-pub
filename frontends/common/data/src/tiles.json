@@ -14,10 +14,12 @@
         "tile_size": 16,
 
         "mapping": {
-            "none": 27,
+            "none": 63,
             "water": 48,
             "water2": 17,
             "tree": 28,
+            "palm": 15,
+            "cactus": 56,
             "plant": 6,
             "bush": 7,
             "stone": 36

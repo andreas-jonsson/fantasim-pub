@@ -134,16 +134,13 @@ func blitImage(dst *image.RGBA, dp image.Point, src *image.Paletted, fg, bg colo
 	draw.Draw(dst, dr, &srcImg, sr.Min, draw.Over)
 }
 
-func startGame(conn io.ReadWriter) error {
-	enc := json.NewEncoder(conn)
-	dec := json.NewDecoder(conn)
-
-	if err := enc.Encode(&playerKey); err != nil {
-		return nil
-	}
+func startGame(apiConn io.ReadWriter, infoConn io.Reader) error {
+	enc := json.NewEncoder(apiConn)
+	dec := json.NewDecoder(apiConn)
+	decInfo := json.NewDecoder(infoConn)
 
 	var version string
-	if err := dec.Decode(&version); err != nil {
+	if err := decInfo.Decode(&version); err != nil {
 		return err
 	}
 
@@ -181,7 +178,7 @@ func startGame(conn io.ReadWriter) error {
 	viewID := obj.(*api.CreateViewResponse).ViewID
 	noise := opensimplex.NewWithSeed(time.Now().UnixNano())
 
-	for range time.Tick(time.Second / 30) {
+	for range time.Tick(time.Second / 15) {
 		for ev := range vsdl.Events() {
 			switch t := ev.(type) {
 			case *vsdl.QuitEvent:
@@ -231,15 +228,15 @@ func startGame(conn io.ReadWriter) error {
 		rvresp := obj.(*api.ReadViewResponse)
 		tileReg := tilesetRegister["tiles"]
 
-		treeBgColor := color.RGBA{R: 93, G: 184, B: 155, A: 0xFF}
-		waterColor := color.RGBA{R: 255, G: 119, B: 15, A: 0xFF}
-		waterBgColor := color.RGBA{R: 255, G: 215, B: 15, A: 0xFF}
+		treeBgColor := color.RGBA{R: 155, G: 184, B: 93, A: 0xFF}
+		waterColor := color.RGBA{R: 15, G: 119, B: 255, A: 0xFF}
+		waterBgColor := color.RGBA{R: 15, G: 215, B: 255, A: 0xFF}
 
 		treeColor := func(x, y int) color.RGBA {
 			if noise.Eval2(float64(x), float64(y)) > 0 {
-				return color.RGBA{R: 85, G: 138, B: 0, A: 0xFF}
+				return color.RGBA{R: 0, G: 138, B: 85, A: 0xFF}
 			}
-			return color.RGBA{R: 85, G: 100, B: 0, A: 0xFF}
+			return color.RGBA{R: 0, G: 100, B: 85, A: 0xFF}
 		}
 
 		waterTile := func(x, y int) *image.Paletted {
@@ -251,16 +248,23 @@ func startGame(conn io.ReadWriter) error {
 
 		grassBgColor := func(x, y int) color.RGBA {
 			if noise.Eval2(float64(x), float64(y)) > 0 {
-				return color.RGBA{R: 90, G: 178, B: 155, A: 0xFF}
+				return color.RGBA{R: 155, G: 178, B: 90, A: 0xFF}
 			}
 			return treeBgColor
 		}
 
 		snowBgColor := func(x, y int) color.RGBA {
 			if noise.Eval2(float64(x), float64(y)) > 0 {
-				return color.RGBA{R: 255, G: 236, B: 179, A: 0xFF}
+				return color.RGBA{R: 179, G: 236, B: 255, A: 0xFF}
 			}
-			return color.RGBA{R: 240, G: 230, B: 170, A: 0xFF}
+			return color.RGBA{R: 170, G: 230, B: 240, A: 0xFF}
+		}
+
+		sandBgColor := func(x, y int) color.RGBA {
+			if noise.Eval2(float64(x), float64(y)) > 0 {
+				return color.RGBA{R: 189, G: 183, B: 107, A: 0xFF}
+			}
+			return color.RGBA{R: 180, G: 175, B: 100, A: 0xFF}
 		}
 
 		for y := 0; y < cvr.H; y++ {
@@ -270,8 +274,9 @@ func startGame(conn io.ReadWriter) error {
 				wy := y + cameraPos.Y
 
 				var (
-					tile   *image.Paletted
-					fg, bg color.RGBA
+					tile *image.Paletted
+					fg   = color.RGBA{A: 0xFF}
+					bg   = fg
 				)
 
 				f := tileData.Flags
@@ -280,32 +285,41 @@ func startGame(conn io.ReadWriter) error {
 					tile = waterTile(wx, wy)
 					fg = waterColor
 					bg = waterBgColor
-				case f.Is(api.Tree):
-					tile = tileReg["tree"]
-					fg = treeColor(wx, wy)
-					bg = treeBgColor
-				case f.Is(api.Bush):
-					tile = tileReg["bush"]
-					fg = treeColor(wx, wy)
-					bg = treeBgColor
-				case f.Is(api.Plant):
-					tile = tileReg["plant"]
-					fg = treeColor(wx, wy)
-					bg = treeBgColor
-				case f.Is(api.Stone):
-					tile = tileReg["stone"]
-					fg = color.RGBA{R: 128, G: 128, B: 128, A: 0xFF}
-					bg = grassBgColor(wx, wy)
 				case f.Is(api.Snow):
 					tile = tileReg["none"]
 					fg = snowBgColor(wx, wy)
+					bg = fg
 				case f.Is(api.Sand):
-					tile = tileReg["water"]
-					fg = color.RGBA{R: 107, G: 183, B: 189, A: 0xFF}
-					bg = color.RGBA{R: 75, G: 150, B: 150, A: 0xFF}
+					tile = tileReg["none"]
+					fg = sandBgColor(wx, wy)
+					bg = fg
 				default:
 					tile = tileReg["none"]
 					fg = grassBgColor(wx, wy)
+					bg = fg
+				}
+
+				switch {
+				case f.Is(api.Tree):
+					if f.Is(api.Sand) {
+						tile = tileReg["palm"]
+					} else {
+						tile = tileReg["tree"]
+					}
+					fg = treeColor(wx, wy)
+				case f.Is(api.Bush):
+					if f.Is(api.Sand) {
+						tile = tileReg["cactus"]
+					} else {
+						tile = tileReg["bush"]
+					}
+					fg = treeColor(wx, wy)
+				case f.Is(api.Plant):
+					tile = tileReg["plant"]
+					fg = treeColor(wx, wy)
+				case f.Is(api.Stone):
+					tile = tileReg["stone"]
+					fg = color.RGBA{R: 128, G: 128, B: 128, A: 0xFF}
 				}
 
 				if tile == nil {
@@ -333,13 +347,24 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	ws, err := websocket.Dial(fmt.Sprintf("ws://%s/api", "localhost"), "", "http://localhost/")
+	apiWs, err := websocket.Dial(fmt.Sprintf("ws://%s/api", "localhost"), "", "http://localhost/")
 	if err != nil {
 		log.Fatalln(err)
 	}
-	defer ws.Close()
+	defer apiWs.Close()
 
-	if err := startGame(ws); err != nil {
+	infoWs, err := websocket.Dial(fmt.Sprintf("ws://%s/info", "localhost"), "", "http://localhost/")
+	if err != nil {
+		log.Fatalln(err)
+	}
+	defer infoWs.Close()
+
+	enc := json.NewEncoder(io.MultiWriter(apiWs, infoWs))
+	if err := enc.Encode(&playerKey); err != nil {
+		log.Fatalln(err)
+	}
+
+	if err := startGame(apiWs, infoWs); err != nil {
 		log.Fatalln(err)
 	}
 }
