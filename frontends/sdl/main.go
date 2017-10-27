@@ -239,6 +239,13 @@ func startGame(apiConn io.ReadWriter, infoConn io.Reader) error {
 			return color.RGBA{R: 0, G: 100, B: 85, A: 0xFF}
 		}
 
+		snowTreeColor := func(x, y int) color.RGBA {
+			if noise.Eval2(float64(x), float64(y)) > 0 {
+				return color.RGBA{R: 127, G: 137, B: 127, A: 0xFF}
+			}
+			return color.RGBA{R: 175, G: 185, B: 175, A: 0xFF}
+		}
+
 		waterTile := func(x, y int) *image.Paletted {
 			if noise.Eval2(float64(x), float64(y)) > 0 {
 				return tileReg["water"]
@@ -267,9 +274,13 @@ func startGame(apiConn io.ReadWriter, infoConn io.Reader) error {
 			return color.RGBA{R: 180, G: 175, B: 100, A: 0xFF}
 		}
 
+		index := func(x, y int) api.ReadViewData {
+			return rvresp.Data[y*cvr.W+x]
+		}
+
 		for y := 0; y < cvr.H; y++ {
 			for x := 0; x < cvr.W; x++ {
-				tileData := rvresp.Data[y*cvr.W+x]
+				tileData := index(x, y)
 				wx := x + cameraPos.X
 				wy := y + cameraPos.Y
 
@@ -303,17 +314,27 @@ func startGame(apiConn io.ReadWriter, infoConn io.Reader) error {
 				case f.Is(api.Tree):
 					if f.Is(api.Sand) {
 						tile = tileReg["palm"]
+					} else if f.Is(api.Snow) {
+						tile = tileReg["pine"]
 					} else {
 						tile = tileReg["tree"]
 					}
-					fg = treeColor(wx, wy)
+					if f.Is(api.Snow) {
+						fg = snowTreeColor(wx, wy)
+					} else {
+						fg = treeColor(wx, wy)
+					}
 				case f.Is(api.Bush):
 					if f.Is(api.Sand) {
 						tile = tileReg["cactus"]
 					} else {
 						tile = tileReg["bush"]
 					}
-					fg = treeColor(wx, wy)
+					if f.Is(api.Snow) {
+						fg = snowTreeColor(wx, wy)
+					} else {
+						fg = treeColor(wx, wy)
+					}
 				case f.Is(api.Plant):
 					tile = tileReg["plant"]
 					fg = treeColor(wx, wy)
