@@ -37,6 +37,8 @@ import (
 
 const fantasimVersionString = "0.0.1"
 
+var noise = opensimplex.NewWithSeed(time.Now().UnixNano())
+
 var idCounter uint64
 
 func newId() uint64 {
@@ -137,7 +139,7 @@ func Initialize() error {
 	return buildTilesets()
 }
 
-func update(backBuffer *image.RGBA, cvr *api.CreateViewRequest, rvresp *api.ReadViewResponse, noise *opensimplex.Noise, cameraPos image.Point) error {
+func update(backBuffer *image.RGBA, cvr *api.CreateViewRequest, rvresp *api.ReadViewResponse, cameraPos image.Point) error {
 	tileReg := tilesetRegister["tiles"]
 
 	treeBgColor := color.RGBA{R: 155, G: 184, B: 93, A: 0xFF}
@@ -308,7 +310,18 @@ func Start(apiConn io.ReadWriter, infoConn io.Reader) error {
 	}
 
 	viewID := obj.(*api.CreateViewResponse).ViewID
-	noise := opensimplex.NewWithSeed(time.Now().UnixNano())
+
+	putch := func(x, y int, ch string) {
+		blitImage(backBuffer, image.Pt(x*8, y*16), tilesetRegister["default"][ch], color.RGBA{R: 0xFF, G: 0xFF, B: 0xFF, A: 0xFF}, color.RGBA{A: 0xFF})
+	}
+
+	print := func(x, y int, text string) {
+		for i, r := range text {
+			putch(x+i, y, string(r))
+		}
+	}
+
+	var contextMenu *window
 
 	for range time.Tick(time.Second / 15) {
 		for ev := range vsdl.Events() {
@@ -323,6 +336,18 @@ func Start(apiConn io.ReadWriter, infoConn io.Reader) error {
 				log.Printf("%s: %X\n", t.Keysym, t.Keysym.Sym)
 			case *vsdl.MouseMotionEvent:
 				mousePos = image.Pt(int(t.X), int(t.Y))
+			case *vsdl.MouseButtonEvent:
+				if t.State == 1 {
+					p := image.Pt(mousePos.X/8, mousePos.Y/16).Add(image.Pt(2, 1))
+					contextMenu = newWindow(
+						" Info ",
+						image.Rectangle{Min: p, Max: p.Add(image.Pt(16, 16))},
+						tilesetRegister["default"],
+						putch,
+					)
+				} else {
+					contextMenu = nil
+				}
 			}
 			ev.Release()
 		}
@@ -363,17 +388,7 @@ func Start(apiConn io.ReadWriter, infoConn io.Reader) error {
 
 		rvresp := obj.(*api.ReadViewResponse)
 
-		putch := func(x, y int, ch string) {
-			blitImage(backBuffer, image.Pt(x*8, y*16), tilesetRegister["default"][ch], color.RGBA{R: 0xFF, G: 0xFF, B: 0xFF, A: 0xFF}, color.RGBA{A: 0xFF})
-		}
-
-		print := func(x, y int, text string) {
-			for i, r := range text {
-				putch(x+i, y, string(r))
-			}
-		}
-
-		update(backBuffer, &cvr, rvresp, noise, cameraPos)
+		update(backBuffer, &cvr, rvresp, cameraPos)
 
 		sz := image.Pt(sz.X/8, sz.Y/16)
 
@@ -394,6 +409,13 @@ func Start(apiConn io.ReadWriter, infoConn io.Reader) error {
 
 		const title = " Fantasim "
 		print(sz.X/2-len(title)/2, 0, title)
+
+		if contextMenu != nil {
+			contextMenu.clear()
+			contextMenu.print(0, 0, "HEJ hopp !!!! weee")
+		}
+
+		putch(mousePos.X/8, mousePos.Y/16, "#219")
 
 		vsdl.Present(backBuffer)
 	}
