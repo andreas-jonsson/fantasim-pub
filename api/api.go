@@ -80,9 +80,14 @@ type ReadViewRequest struct {
 	ViewID int `json:"view_id"`
 }
 
+type UnitViewData struct {
+	ID uint64 `json:"unit_id"`
+}
+
 type ReadViewData struct {
 	Flags  TileFlag `json:"flags"`
 	Height uint8    `json:"height"`
+	Units  []UnitViewData
 }
 
 type ReadViewResponse struct {

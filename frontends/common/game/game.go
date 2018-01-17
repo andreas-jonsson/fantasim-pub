@@ -261,7 +261,11 @@ func update(backBuffer *image.RGBA, cvr *api.CreateViewRequest, rvresp *api.Read
 				log.Fatalln("Could not load tile!")
 			}
 
-			blitImage(backBuffer, image.Pt(x*16, y*16), tile, fg, bg)
+			if len(tileData.Units) > 0 {
+				blitImage(backBuffer, image.Pt(x*16, y*16), tileReg["none"], bg, color.RGBA{R: 0xFF, A: 0xFF})
+			} else {
+				blitImage(backBuffer, image.Pt(x*16, y*16), tile, fg, bg)
+			}
 		}
 	}
 
