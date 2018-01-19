@@ -325,7 +325,10 @@ func Start(apiConn io.ReadWriter, infoConn io.Reader) error {
 		}
 	}
 
-	var contextMenu *window
+	var (
+		contextMenu *window
+		jobQueue    []string
+	)
 
 	for range time.Tick(time.Second / 15) {
 		for ev := range vsdl.Events() {
@@ -342,15 +345,40 @@ func Start(apiConn io.ReadWriter, infoConn io.Reader) error {
 				mousePos = image.Pt(int(t.X), int(t.Y))
 			case *vsdl.MouseButtonEvent:
 				if t.State == 1 {
-					p := image.Pt(mousePos.X/8, mousePos.Y/16).Add(image.Pt(2, 1))
-					contextMenu = newWindow(
-						" Info ",
-						image.Rectangle{Min: p, Max: p.Add(image.Pt(16, 16))},
-						tilesetRegister["default"],
-						putch,
-					)
+					switch t.Button {
+					case 1:
+						p := image.Pt(mousePos.X/8, mousePos.Y/16).Add(image.Pt(2, 1))
+						contextMenu = newWindow(
+							" JobQueue ",
+							image.Rectangle{Min: p, Max: p.Add(image.Pt(32, 16))},
+							tilesetRegister["default"],
+							putch,
+						)
+
+						if err := api.EncodeRequest(enc, &api.JobQueueRequest{}, 0); err != nil {
+							return err
+						}
+
+						if resp, _, err := api.DecodeResponse(dec); err != nil {
+							return err
+						} else {
+							jobQueue = resp.(*api.JobQueueResponse).Jobs
+						}
+					case 3:
+						pX, pY := float64(mousePos.X)/float64(sz.X), float64(mousePos.Y)/float64(sz.Y)
+						mX, mY := float64(viewportSize.X)*pX, float64(viewportSize.Y)*pY
+						mouseWorldPos := cameraPos.Add(image.Pt(int(mX), int(mY)))
+
+						if err := api.EncodeRequest(enc, &api.ExploreLocationRequest{mouseWorldPos.X, mouseWorldPos.Y}, 0); err != nil {
+							return err
+						}
+						if _, _, err := api.DecodeResponse(dec); err != nil {
+							return err
+						}
+					}
 				} else {
 					contextMenu = nil
+					jobQueue = nil
 				}
 			}
 			ev.Release()
@@ -411,12 +439,14 @@ func Start(apiConn io.ReadWriter, infoConn io.Reader) error {
 			putch(sz.X-1, i, "#179")
 		}
 
-		const title = " Fantasim "
+		title := fmt.Sprintf(" Fantasim - (X:%d,Y:%d) ", cameraPos.X, cameraPos.Y)
 		print(sz.X/2-len(title)/2, 0, title)
 
 		if contextMenu != nil {
 			contextMenu.clear()
-			contextMenu.print(0, 0, "HEJ hopp !!!! weee")
+			for i, s := range jobQueue {
+				contextMenu.print(0, i, s)
+			}
 		}
 
 		putch(mousePos.X/8, mousePos.Y/16, "#219")
