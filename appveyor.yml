@@ -30,4 +30,4 @@ after_build:
     - iscc /Qp /O".\" setup.iss
 
 artifacts:
-    - path: fantasim-sdl-setup.exe
+    - path: frontends/sdl/fantasim-sdl-setup.exe
