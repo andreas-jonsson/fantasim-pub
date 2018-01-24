@@ -439,7 +439,7 @@ func Start(apiConn io.ReadWriter, infoConn io.Reader) error {
 			putch(sz.X-1, i, "#179")
 		}
 
-		title := fmt.Sprintf(" Fantasim - (X:%d,Y:%d) ", cameraPos.X, cameraPos.Y)
+		title := fmt.Sprintf(" Fantasim - [%d:%d] ", cameraPos.X, cameraPos.Y)
 		print(sz.X/2-len(title)/2, 0, title)
 
 		if contextMenu != nil {
