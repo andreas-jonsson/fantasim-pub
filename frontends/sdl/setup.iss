@@ -44,5 +44,5 @@ Name: "{group}\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"
 Root: HKCR; Subkey: "fantasim"; ValueType: "string"; ValueData: "URL:Custom Protocol"; Flags: uninsdeletekey
 Root: HKCR; Subkey: "fantasim"; ValueType: "string"; ValueName: "URL Protocol"; ValueData: ""
 Root: HKCR; Subkey: "fantasim\DefaultIcon"; ValueType: "string"; ValueData: "{app}\{#MyAppExeName},0"
-Root: HKCR; Subkey: "fantasim\shell\open\command"; ValueType: "string"; ValueData: """{app}\{#MyAppExeName}"" ""%1"""
+Root: HKCR; Subkey: "fantasim\shell\open\command"; ValueType: "string"; ValueData: """{app}\{#MyAppExeName}"" -url=""%1"""
 

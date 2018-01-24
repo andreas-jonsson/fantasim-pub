@@ -25,6 +25,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"net/url"
 	"os"
 
 	"github.com/andreas-jonsson/fantasim-pub/frontends/common/game"
@@ -34,21 +35,41 @@ import (
 var playerKey, playerName string
 
 func main() {
+	var (
+		fantasimUrl,
+		serverAddress string
+	)
+
+	flag.StringVar(&fantasimUrl, "url", "", "fantasim URL startup.")
+	flag.StringVar(&serverAddress, "host", "localhost", "Server address.")
 	flag.StringVar(&playerKey, "key", os.Getenv("fantasim-key"), "The player key assigned by the server.")
 	flag.StringVar(&playerName, "name", "Unknown", "The name of the player.")
 	flag.Parse()
+
+	if fantasimUrl != "" {
+		u, err := url.Parse(fantasimUrl)
+		if err != nil {
+			log.Fatalln(err)
+		}
+
+		q := u.Query()
+		playerName = q.Get("name")
+		playerKey = q.Get("key")
+		serverAddress = u.Hostname()
+	}
 
 	if err := game.Initialize(); err != nil {
 		log.Fatalln(err)
 	}
 
-	apiWs, err := websocket.Dial(fmt.Sprintf("ws://%s/api", "localhost"), "", "http://localhost/")
+	origin := fmt.Sprintf("http://%s/", serverAddress)
+	apiWs, err := websocket.Dial(fmt.Sprintf("ws://%s/api", serverAddress), "", origin)
 	if err != nil {
 		log.Fatalln(err)
 	}
 	defer apiWs.Close()
 
-	infoWs, err := websocket.Dial(fmt.Sprintf("ws://%s/info", "localhost"), "", "http://localhost/")
+	infoWs, err := websocket.Dial(fmt.Sprintf("ws://%s/info", serverAddress), "", origin)
 	if err != nil {
 		log.Fatalln(err)
 	}
