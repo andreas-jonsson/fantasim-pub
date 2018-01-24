@@ -17,18 +17,16 @@ install:
     - go version
     - go env
 
-    # - set PATH="c:\Program Files (x86)\Inno Setup 5";%PATH%
+    - set PATH="c:\Program Files (x86)\Inno Setup 5";%PATH%
 
 build_script:
     - cd frontends\sdl
     - go get github.com/akavel/rsrc
     # - rsrc -ico=icon.ico -arch=amd64
-    - go get -v 
-    # - go build
+    - go get -v
     - go build -o fantasim-sdl.exe -ldflags="-H windowsgui"
 
 after_build:
-    # - iscc /Qp /O".\" /Ffantasim-sdl-%APPVEYOR_BUILD_VERSION%-win64 setup.iss
     - iscc /Qp /O".\" setup.iss
 
 artifacts:
