@@ -17,7 +17,7 @@ install:
     - go version
     - go env
 
-    - set PATH="c:\Program Files (x86)\Inno Setup 5";%PATH%
+    - set PATH="c:\Program Files (x86)\Inno Setup 5";%GOPATH%\bin;%PATH%
 
 build_script:
     - cd frontends\sdl
