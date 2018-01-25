@@ -31,3 +31,15 @@ after_build:
 
 artifacts:
     - path: frontends/sdl/fantasim-sdl-setup.exe
+
+deploy:
+    description: 'Fantasim SDL'
+    provider: GitHub
+    auth_token:
+        secure: kcKpWCf8VCWk8VsjncvYS90wjZoY8LSxTPwNHCQ+mmjls5gt4j9dbsIgTw4gt5le
+    artifact: frontends/sdl/fantasim-sdl-setup.exe
+    draft: false
+    prerelease: true
+    on:
+        branch: master
+        appveyor_repo_tag: false
