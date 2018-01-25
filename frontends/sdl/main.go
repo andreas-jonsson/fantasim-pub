@@ -55,7 +55,7 @@ func main() {
 		q := u.Query()
 		playerName = q.Get("name")
 		playerKey = q.Get("key")
-		serverAddress = u.Hostname()
+		serverAddress = u.Host
 	}
 
 	if err := game.Initialize(); err != nil {
