@@ -107,6 +107,15 @@ type JobQueueResponse struct {
 	Jobs []string `json:"jobs"`
 }
 
+type ViewHomeRequest struct {
+	ViewID int `json:"view_id"`
+}
+
+type ViewHomeResponse struct {
+	X int `json:"x"`
+	Y int `json:"y"`
+}
+
 var (
 	requestTypeRegistry  = make(map[string]reflect.Type)
 	responseTypeRegistry = make(map[string]reflect.Type)
@@ -134,6 +143,7 @@ func init() {
 	registerType(requestTypeRegistry, ReadViewRequest{})
 	registerType(requestTypeRegistry, ExploreLocationRequest{})
 	registerType(requestTypeRegistry, JobQueueRequest{})
+	registerType(requestTypeRegistry, ViewHomeRequest{})
 
 	registerType(responseTypeRegistry, Empty{})
 	registerType(responseTypeRegistry, CreateViewResponse{})
@@ -142,6 +152,7 @@ func init() {
 	registerType(responseTypeRegistry, ReadViewResponse{})
 	registerType(responseTypeRegistry, ExploreLocationResponse{})
 	registerType(responseTypeRegistry, JobQueueResponse{})
+	registerType(responseTypeRegistry, ViewHomeResponse{})
 }
 
 func decode(dec *json.Decoder, m map[string]reflect.Type, op string) (interface{}, int, error) {

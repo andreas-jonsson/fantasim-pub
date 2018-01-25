@@ -315,6 +315,17 @@ func Start(apiConn io.ReadWriter, infoConn io.Reader) error {
 
 	viewID := obj.(*api.CreateViewResponse).ViewID
 
+	if err := api.EncodeRequest(enc, &api.ViewHomeRequest{viewID}, 0); err != nil {
+		return err
+	}
+
+	if resp, _, err := api.DecodeResponse(dec); err != nil {
+		return err
+	} else {
+		r := resp.(*api.ViewHomeResponse)
+		cameraPos = image.Pt(r.X, r.Y)
+	}
+
 	putch := func(x, y int, ch string) {
 		blitImage(backBuffer, image.Pt(x*8, y*16), tilesetRegister["default"][ch], color.RGBA{R: 0xFF, G: 0xFF, B: 0xFF, A: 0xFF}, color.RGBA{A: 0xFF})
 	}
@@ -336,11 +347,22 @@ func Start(apiConn io.ReadWriter, infoConn io.Reader) error {
 			case *vsdl.QuitEvent:
 				return nil
 			case *vsdl.KeyDownEvent:
-				if t.Keysym.IsKey(vsdl.EscKey) {
+				switch {
+				case t.Keysym.IsKey(vsdl.EscKey):
 					return nil
+				case t.Keysym.IsKey(vsdl.SpaceKey):
+					if err := api.EncodeRequest(enc, &api.ViewHomeRequest{viewID}, 0); err != nil {
+						return err
+					}
+					if resp, _, err := api.DecodeResponse(dec); err != nil {
+						return err
+					} else {
+						r := resp.(*api.ViewHomeResponse)
+						cameraPos = image.Pt(r.X, r.Y)
+					}
+				default:
+					log.Printf("%s: %X\n", t.Keysym, t.Keysym.Sym)
 				}
-
-				log.Printf("%s: %X\n", t.Keysym, t.Keysym.Sym)
 			case *vsdl.MouseMotionEvent:
 				mousePos = image.Pt(int(t.X), int(t.Y))
 			case *vsdl.MouseButtonEvent:
