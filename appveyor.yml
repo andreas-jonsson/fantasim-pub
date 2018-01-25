@@ -28,6 +28,7 @@ build_script:
 
 after_build:
     - iscc /Qp /O".\" setup.iss
+    - 7z a -tzip -mx=0 fantasim-sdl-setup.zip fantasim-sdl-setup.exe
 
 artifacts:
-    - path: frontends/sdl/fantasim-sdl-setup.exe
+    - path: frontends/sdl/fantasim-sdl-setup.zip
