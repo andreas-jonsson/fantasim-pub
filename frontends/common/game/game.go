@@ -261,10 +261,21 @@ func update(backBuffer *image.RGBA, cvr *api.CreateViewRequest, rvresp *api.Read
 				log.Fatalln("Could not load tile!")
 			}
 
+			dp := image.Pt(x*16, y*16)
 			if len(tileData.Units) > 0 {
-				blitImage(backBuffer, image.Pt(x*16, y*16), tileReg["none"], bg, color.RGBA{R: 0xFF, A: 0xFF})
+				unit := tileData.Units[0]
+				fg := color.RGBA{R: 0xFF, A: 0xFF}
+
+				switch unit.Allegiance {
+				case api.Friendly:
+					fg = color.RGBA{G: 0xFF, A: 0xFF}
+				case api.Neutral:
+					fg = color.RGBA{R: 0xFF, G: 0xFF, A: 0xFF}
+				}
+
+				blitImage(backBuffer, dp, tileReg["deamon"], fg, bg)
 			} else {
-				blitImage(backBuffer, image.Pt(x*16, y*16), tile, fg, bg)
+				blitImage(backBuffer, dp, tile, fg, bg)
 			}
 		}
 	}
@@ -296,6 +307,7 @@ func Start(apiConn io.ReadWriter, infoConn io.Reader) error {
 	viewportSize := image.Pt(sz.X/16, sz.Y/16)
 	cameraPos := image.Pt(0, 0)
 	mousePos := sz.Div(2)
+	oldCameraPos := cameraPos
 
 	cvr := api.CreateViewRequest{
 		X: cameraPos.X,
@@ -337,8 +349,10 @@ func Start(apiConn io.ReadWriter, infoConn io.Reader) error {
 	}
 
 	var (
-		contextMenu *window
-		jobQueue    []string
+		lastViewUpdate  time.Time
+		rvresp          *api.ReadViewResponse
+		contextMenu     *window
+		contextMenuText []string
 	)
 
 	for range time.Tick(time.Second / 15) {
@@ -361,7 +375,7 @@ func Start(apiConn io.ReadWriter, infoConn io.Reader) error {
 						cameraPos = image.Pt(r.X, r.Y)
 					}
 				default:
-					log.Printf("%s: %X\n", t.Keysym, t.Keysym.Sym)
+					log.Printf("%v: %X\n", t.Keysym, t.Keysym.Sym)
 				}
 			case *vsdl.MouseMotionEvent:
 				mousePos = image.Pt(int(t.X), int(t.Y))
@@ -371,21 +385,73 @@ func Start(apiConn io.ReadWriter, infoConn io.Reader) error {
 					case 1:
 						p := image.Pt(mousePos.X/8, mousePos.Y/16).Add(image.Pt(2, 1))
 						contextMenu = newWindow(
-							" JobQueue ",
+							" Info ",
 							image.Rectangle{Min: p, Max: p.Add(image.Pt(32, 16))},
 							tilesetRegister["default"],
 							putch,
 						)
 
-						if err := api.EncodeRequest(enc, &api.JobQueueRequest{}, 0); err != nil {
-							return err
+						if rvresp != nil {
+							p := image.Pt(mousePos.X/16, mousePos.Y/16)
+							i := viewportSize.X*p.Y + p.X
+							t := rvresp.Data[i]
+							units := t.Units
+
+							if len(units) > 0 {
+								u := units[0]
+
+								if err := api.EncodeRequest(enc, &api.UnitStatsRequest{int(u.ID)}, 0); err != nil {
+									return err
+								}
+
+								if resp, _, err := api.DecodeResponse(dec); err != nil {
+									return err
+								} else {
+									r := resp.(*api.UnitStatsResponse)
+									contextMenuText = []string{
+										fmt.Sprintf("Unit ID: %v", u.ID),
+										fmt.Sprintf("Health:  %v", r.Health),
+										fmt.Sprintf("Thirst:  %v", r.Thirst),
+									}
+								}
+							} else {
+								switch {
+								case t.Flags.Is(api.Water):
+									contextMenuText = append(contextMenuText, "Tile: Water")
+								case t.Flags.Is(api.Sand):
+									contextMenuText = append(contextMenuText, "Tile: Sand")
+								case t.Flags.Is(api.Snow):
+									contextMenuText = append(contextMenuText, "Tile: Snow")
+								default:
+									contextMenuText = append(contextMenuText, "Tile: Grass")
+								}
+
+								switch {
+								case t.Flags.Is(api.Tree):
+									contextMenuText = append(contextMenuText, "Object: Tree")
+								case t.Flags.Is(api.Bush):
+									contextMenuText = append(contextMenuText, "Object: Bush")
+								case t.Flags.Is(api.Bush):
+									contextMenuText = append(contextMenuText, "Object: Plant")
+								case t.Flags.Is(api.Bush):
+									contextMenuText = append(contextMenuText, "Object: Stone")
+								}
+
+								contextMenuText = append(contextMenuText, fmt.Sprintf("Height: %v", t.Height))
+							}
 						}
 
-						if resp, _, err := api.DecodeResponse(dec); err != nil {
-							return err
-						} else {
-							jobQueue = resp.(*api.JobQueueResponse).Jobs
-						}
+						/*
+							if err := api.EncodeRequest(enc, &api.JobQueueRequest{}, 0); err != nil {
+								return err
+							}
+
+							if resp, _, err := api.DecodeResponse(dec); err != nil {
+								return err
+							} else {
+								contextMenuText = resp.(*api.JobQueueResponse).Jobs
+							}
+						*/
 					case 3:
 						pX, pY := float64(mousePos.X)/float64(sz.X), float64(mousePos.Y)/float64(sz.Y)
 						mX, mY := float64(viewportSize.X)*pX, float64(viewportSize.Y)*pY
@@ -400,7 +466,7 @@ func Start(apiConn io.ReadWriter, infoConn io.Reader) error {
 					}
 				} else {
 					contextMenu = nil
-					jobQueue = nil
+					contextMenuText = nil
 				}
 			}
 			ev.Release()
@@ -422,25 +488,30 @@ func Start(apiConn io.ReadWriter, infoConn io.Reader) error {
 			cameraPos.Y++
 		}
 
-		uvr := api.UpdateViewRequest{ViewID: viewID, X: cameraPos.X, Y: cameraPos.Y}
-		if err := api.EncodeRequest(enc, &uvr, 0); err != nil {
-			return err
-		}
-		_, _, err := api.DecodeResponse(dec)
-		if err != nil {
-			return err
-		}
+		if cameraPos != oldCameraPos || rvresp == nil || time.Since(lastViewUpdate) > time.Millisecond*500 {
+			oldCameraPos = cameraPos
+			lastViewUpdate = time.Now()
 
-		rvr := api.ReadViewRequest{ViewID: viewID}
-		if err := api.EncodeRequest(enc, &rvr, 0); err != nil {
-			return err
-		}
-		obj, _, err := api.DecodeResponse(dec)
-		if err != nil {
-			return err
-		}
+			uvr := api.UpdateViewRequest{ViewID: viewID, X: cameraPos.X, Y: cameraPos.Y}
+			if err := api.EncodeRequest(enc, &uvr, 0); err != nil {
+				return err
+			}
+			_, _, err := api.DecodeResponse(dec)
+			if err != nil {
+				return err
+			}
 
-		rvresp := obj.(*api.ReadViewResponse)
+			rvr := api.ReadViewRequest{ViewID: viewID}
+			if err := api.EncodeRequest(enc, &rvr, 0); err != nil {
+				return err
+			}
+			obj, _, err := api.DecodeResponse(dec)
+			if err != nil {
+				return err
+			}
+
+			rvresp = obj.(*api.ReadViewResponse)
+		}
 
 		update(backBuffer, &cvr, rvresp, cameraPos)
 
@@ -466,7 +537,7 @@ func Start(apiConn io.ReadWriter, infoConn io.Reader) error {
 
 		if contextMenu != nil {
 			contextMenu.clear()
-			for i, s := range jobQueue {
+			for i, s := range contextMenuText {
 				contextMenu.print(0, i, s)
 			}
 		}

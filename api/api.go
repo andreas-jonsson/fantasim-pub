@@ -35,6 +35,20 @@ const (
 	Stone
 )
 
+type Allegiance uint8
+
+const (
+	Friendly Allegiance = iota
+	Neutral
+	Hostile
+)
+
+type UnitClass uint8
+
+const (
+	Goblin UnitClass = iota
+)
+
 func (flags TileFlag) Is(f TileFlag) bool {
 	return flags&f != 0
 }
@@ -81,7 +95,9 @@ type ReadViewRequest struct {
 }
 
 type UnitViewData struct {
-	ID uint64 `json:"unit_id"`
+	ID         uint64     `json:"unit_id"`
+	Allegiance Allegiance `json:"allegiance"`
+	Class      UnitClass  `json:"class"`
 }
 
 type ReadViewData struct {
@@ -116,6 +132,15 @@ type ViewHomeResponse struct {
 	Y int `json:"y"`
 }
 
+type UnitStatsRequest struct {
+	UnitID int `json:"unit_id"`
+}
+
+type UnitStatsResponse struct {
+	Health float32 `json:"health"`
+	Thirst float32 `json:"thirst"`
+}
+
 var (
 	requestTypeRegistry  = make(map[string]reflect.Type)
 	responseTypeRegistry = make(map[string]reflect.Type)
@@ -144,6 +169,7 @@ func init() {
 	registerType(requestTypeRegistry, ExploreLocationRequest{})
 	registerType(requestTypeRegistry, JobQueueRequest{})
 	registerType(requestTypeRegistry, ViewHomeRequest{})
+	registerType(requestTypeRegistry, UnitStatsRequest{})
 
 	registerType(responseTypeRegistry, Empty{})
 	registerType(responseTypeRegistry, CreateViewResponse{})
@@ -153,6 +179,7 @@ func init() {
 	registerType(responseTypeRegistry, ExploreLocationResponse{})
 	registerType(responseTypeRegistry, JobQueueResponse{})
 	registerType(responseTypeRegistry, ViewHomeResponse{})
+	registerType(responseTypeRegistry, UnitStatsResponse{})
 }
 
 func decode(dec *json.Decoder, m map[string]reflect.Type, op string) (interface{}, int, error) {
