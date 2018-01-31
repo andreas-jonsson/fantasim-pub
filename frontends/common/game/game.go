@@ -297,6 +297,8 @@ func Start(apiConn io.ReadWriter, infoConn io.Reader) error {
 		return fmt.Errorf("invalid version %s, expected %s", version, fantasimVersionString)
 	}
 
+	startAsyncDecoder(dec)
+
 	sz := image.Pt(1280, 720)
 	backBuffer := image.NewRGBA(image.Rectangle{Max: sz})
 	if err := vsdl.Initialize(vsdl.ConfigWithRenderer(sz, image.ZP)); err != nil {
@@ -307,7 +309,6 @@ func Start(apiConn io.ReadWriter, infoConn io.Reader) error {
 	viewportSize := image.Pt(sz.X/16, sz.Y/16)
 	cameraPos := image.Pt(0, 0)
 	mousePos := sz.Div(2)
-	oldCameraPos := cameraPos
 
 	cvr := api.CreateViewRequest{
 		X: cameraPos.X,
@@ -316,22 +317,24 @@ func Start(apiConn io.ReadWriter, infoConn io.Reader) error {
 		H: cameraPos.Y + viewportSize.Y,
 	}
 
-	if err := api.EncodeRequest(enc, &cvr, 0); err != nil {
+	id, err := encodeRequest(enc, &cvr)
+	if err != nil {
 		return err
 	}
 
-	obj, _, err := api.DecodeResponse(dec)
+	obj, err := decodeResponse(id)
 	if err != nil {
 		return err
 	}
 
 	viewID := obj.(*api.CreateViewResponse).ViewID
 
-	if err := api.EncodeRequest(enc, &api.ViewHomeRequest{viewID}, 0); err != nil {
+	id, err = encodeRequest(enc, &api.ViewHomeRequest{viewID})
+	if err != nil {
 		return err
 	}
 
-	if resp, _, err := api.DecodeResponse(dec); err != nil {
+	if resp, err := decodeResponse(id); err != nil {
 		return err
 	} else {
 		r := resp.(*api.ViewHomeResponse)
@@ -349,10 +352,10 @@ func Start(apiConn io.ReadWriter, infoConn io.Reader) error {
 	}
 
 	var (
-		lastViewUpdate  time.Time
-		rvresp          *api.ReadViewResponse
-		contextMenu     *window
-		contextMenuText []string
+		readViewRequestID = invalidRequestID
+		rvresp            *api.ReadViewResponse
+		contextMenu       *window
+		contextMenuText   []string
 	)
 
 	for range time.Tick(time.Second / 15) {
@@ -365,10 +368,12 @@ func Start(apiConn io.ReadWriter, infoConn io.Reader) error {
 				case t.Keysym.IsKey(vsdl.EscKey):
 					return nil
 				case t.Keysym.IsKey(vsdl.SpaceKey):
-					if err := api.EncodeRequest(enc, &api.ViewHomeRequest{viewID}, 0); err != nil {
+					id, err := encodeRequest(enc, &api.ViewHomeRequest{viewID})
+					if err != nil {
 						return err
 					}
-					if resp, _, err := api.DecodeResponse(dec); err != nil {
+
+					if resp, err := decodeResponse(id); err != nil {
 						return err
 					} else {
 						r := resp.(*api.ViewHomeResponse)
@@ -400,11 +405,12 @@ func Start(apiConn io.ReadWriter, infoConn io.Reader) error {
 							if len(units) > 0 {
 								u := units[0]
 
-								if err := api.EncodeRequest(enc, &api.UnitStatsRequest{int(u.ID)}, 0); err != nil {
+								id, err := encodeRequest(enc, &api.UnitStatsRequest{int(u.ID)})
+								if err != nil {
 									return err
 								}
 
-								if resp, _, err := api.DecodeResponse(dec); err != nil {
+								if resp, err := decodeResponse(id); err != nil {
 									return err
 								} else {
 									r := resp.(*api.UnitStatsResponse)
@@ -440,29 +446,16 @@ func Start(apiConn io.ReadWriter, infoConn io.Reader) error {
 								contextMenuText = append(contextMenuText, fmt.Sprintf("Height: %v", t.Height))
 							}
 						}
-
-						/*
-							if err := api.EncodeRequest(enc, &api.JobQueueRequest{}, 0); err != nil {
-								return err
-							}
-
-							if resp, _, err := api.DecodeResponse(dec); err != nil {
-								return err
-							} else {
-								contextMenuText = resp.(*api.JobQueueResponse).Jobs
-							}
-						*/
 					case 3:
 						pX, pY := float64(mousePos.X)/float64(sz.X), float64(mousePos.Y)/float64(sz.Y)
 						mX, mY := float64(viewportSize.X)*pX, float64(viewportSize.Y)*pY
 						mouseWorldPos := cameraPos.Add(image.Pt(int(mX), int(mY)))
 
-						if err := api.EncodeRequest(enc, &api.ExploreLocationRequest{mouseWorldPos.X, mouseWorldPos.Y}, 0); err != nil {
+						id, err := encodeRequest(enc, &api.ExploreLocationRequest{mouseWorldPos.X, mouseWorldPos.Y})
+						if err != nil {
 							return err
 						}
-						if _, _, err := api.DecodeResponse(dec); err != nil {
-							return err
-						}
+						discardResponse(id)
 					}
 				} else {
 					contextMenu = nil
@@ -488,32 +481,29 @@ func Start(apiConn io.ReadWriter, infoConn io.Reader) error {
 			cameraPos.Y++
 		}
 
-		if cameraPos != oldCameraPos || rvresp == nil || time.Since(lastViewUpdate) > time.Millisecond*500 {
-			oldCameraPos = cameraPos
-			lastViewUpdate = time.Now()
-
+		if readViewRequestID == invalidRequestID {
 			uvr := api.UpdateViewRequest{ViewID: viewID, X: cameraPos.X, Y: cameraPos.Y}
-			if err := api.EncodeRequest(enc, &uvr, 0); err != nil {
-				return err
-			}
-			_, _, err := api.DecodeResponse(dec)
+			id, err := encodeRequest(enc, &uvr)
 			if err != nil {
 				return err
 			}
+			discardResponse(id)
 
 			rvr := api.ReadViewRequest{ViewID: viewID}
-			if err := api.EncodeRequest(enc, &rvr, 0); err != nil {
-				return err
-			}
-			obj, _, err := api.DecodeResponse(dec)
+			readViewRequestID, err = encodeRequest(enc, &rvr)
 			if err != nil {
 				return err
 			}
+		}
 
+		if obj, err := decodeResponseTimeout(readViewRequestID, time.Millisecond); err == nil {
+			readViewRequestID = invalidRequestID
 			rvresp = obj.(*api.ReadViewResponse)
 		}
 
-		update(backBuffer, &cvr, rvresp, cameraPos)
+		if rvresp != nil {
+			update(backBuffer, &cvr, rvresp, cameraPos)
+		}
 
 		sz := image.Pt(sz.X/8, sz.Y/16)
 
