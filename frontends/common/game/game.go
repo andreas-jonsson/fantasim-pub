@@ -139,7 +139,7 @@ func Initialize() error {
 	return buildTilesets()
 }
 
-func update(backBuffer *image.RGBA, cvr *api.CreateViewRequest, rvresp *api.ReadViewResponse, cameraPos image.Point) error {
+func update(backBuffer *image.RGBA, cvr *api.CreateViewRequest, rvresp *api.ReadViewResponse, cameraPos, currentCameraPos image.Point) error {
 	tileReg := tilesetRegister["tiles"]
 
 	treeBgColor := color.RGBA{R: 155, G: 184, B: 93, A: 0xFF}
@@ -192,11 +192,15 @@ func update(backBuffer *image.RGBA, cvr *api.CreateViewRequest, rvresp *api.Read
 		return rvresp.Data[y*cvr.W+x]
 	}
 
+	cameraOffset := currentCameraPos.Sub(cameraPos)
+
 	for y := 0; y < cvr.H; y++ {
 		for x := 0; x < cvr.W; x++ {
+
 			tileData := index(x, y)
 			wx := x + cameraPos.X
 			wy := y + cameraPos.Y
+			dp := image.Pt((x-cameraOffset.X)*16, (y-cameraOffset.Y)*16)
 
 			var (
 				tile *image.Paletted
@@ -261,7 +265,6 @@ func update(backBuffer *image.RGBA, cvr *api.CreateViewRequest, rvresp *api.Read
 				log.Fatalln("Could not load tile!")
 			}
 
-			dp := image.Pt(x*16, y*16)
 			if len(tileData.Units) > 0 {
 				unit := tileData.Units[0]
 				fg := color.RGBA{R: 0xFF, A: 0xFF}
@@ -308,6 +311,8 @@ func Start(apiConn io.ReadWriter, infoConn io.Reader) error {
 
 	viewportSize := image.Pt(sz.X/16, sz.Y/16)
 	cameraPos := image.Pt(0, 0)
+	requestedCameraPos := cameraPos
+	responseCameraPos := cameraPos
 	mousePos := sz.Div(2)
 
 	cvr := api.CreateViewRequest{
@@ -482,7 +487,9 @@ func Start(apiConn io.ReadWriter, infoConn io.Reader) error {
 		}
 
 		if readViewRequestID == invalidRequestID {
+			requestedCameraPos = cameraPos
 			uvr := api.UpdateViewRequest{ViewID: viewID, X: cameraPos.X, Y: cameraPos.Y}
+
 			id, err := encodeRequest(enc, &uvr)
 			if err != nil {
 				return err
@@ -498,11 +505,12 @@ func Start(apiConn io.ReadWriter, infoConn io.Reader) error {
 
 		if obj, err := decodeResponseTimeout(readViewRequestID, time.Millisecond); err == nil {
 			readViewRequestID = invalidRequestID
+			responseCameraPos = requestedCameraPos
 			rvresp = obj.(*api.ReadViewResponse)
 		}
 
 		if rvresp != nil {
-			update(backBuffer, &cvr, rvresp, cameraPos)
+			update(backBuffer, &cvr, rvresp, responseCameraPos, cameraPos)
 		}
 
 		sz := image.Pt(sz.X/8, sz.Y/16)
