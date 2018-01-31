@@ -34,6 +34,7 @@ const (
 var (
 	requestID    int
 	responseChan chan asyncResponse
+	infoChan     chan string
 )
 
 type asyncResponse struct {
@@ -91,6 +92,25 @@ func startAsyncDecoder(dec *json.Decoder) {
 				return
 			}
 			responseChan <- asyncResponse{resp, id}
+		}
+	}()
+}
+
+func startInfoDecode(dec *json.Decoder) {
+	infoChan = make(chan string, 1024)
+	go func() {
+		for {
+			var str string
+			if err := dec.Decode(&str); err != nil {
+				log.Println(err)
+				close(infoChan)
+				return
+			}
+			select {
+			case infoChan <- str:
+			default:
+				log.Println("info channel is full")
+			}
 		}
 	}()
 }

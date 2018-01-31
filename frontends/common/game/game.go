@@ -135,6 +135,20 @@ func blitImage(dst *image.RGBA, dp image.Point, src *image.Paletted, fg, bg colo
 	draw.Draw(dst, dr, &srcImg, sr.Min, draw.Over)
 }
 
+func updateLogWithServerInfo(lines []string) []string {
+	for {
+		select {
+		case s, ok := <-infoChan:
+			if !ok {
+				return lines
+			}
+			lines = append(lines, s)
+		default:
+			return lines
+		}
+	}
+}
+
 func Initialize() error {
 	return buildTilesets()
 }
@@ -301,6 +315,7 @@ func Start(apiConn io.ReadWriter, infoConn io.Reader) error {
 	}
 
 	startAsyncDecoder(dec)
+	startInfoDecode(decInfo)
 
 	sz := image.Pt(1280, 720)
 	backBuffer := image.NewRGBA(image.Rectangle{Max: sz})
@@ -361,7 +376,17 @@ func Start(apiConn io.ReadWriter, infoConn io.Reader) error {
 		rvresp            *api.ReadViewResponse
 		contextMenu       *window
 		contextMenuText   []string
+		logWindow         *window
+		logLines          []string
 	)
+
+	glog := func(s ...interface{}) {
+		logLines = append(logLines, fmt.Sprint(s...))
+	}
+
+	glogf := func(f string, s ...interface{}) {
+		glog(fmt.Sprintf(f, s...))
+	}
 
 	for range time.Tick(time.Second / 15) {
 		for ev := range vsdl.Events() {
@@ -383,6 +408,18 @@ func Start(apiConn io.ReadWriter, infoConn io.Reader) error {
 					} else {
 						r := resp.(*api.ViewHomeResponse)
 						cameraPos = image.Pt(r.X, r.Y)
+						glogf("Jump to home location: %d,%d", cameraPos.X, cameraPos.Y)
+					}
+				case t.Keysym.Sym == vsdl.Keycode('l'):
+					if logWindow == nil {
+						logWindow = newWindow(
+							" Log ",
+							image.Rect(2, viewportSize.Y-12, viewportSize.X*2-2, viewportSize.Y-2),
+							tilesetRegister["default"],
+							putch,
+						)
+					} else {
+						logWindow = nil
 					}
 				default:
 					log.Printf("%v: %X\n", t.Keysym, t.Keysym.Sym)
@@ -461,6 +498,8 @@ func Start(apiConn io.ReadWriter, infoConn io.Reader) error {
 							return err
 						}
 						discardResponse(id)
+
+						glogf("Explore location: %d,%d", mouseWorldPos.X, mouseWorldPos.Y)
 					}
 				} else {
 					contextMenu = nil
@@ -532,6 +571,22 @@ func Start(apiConn io.ReadWriter, infoConn io.Reader) error {
 
 		title := fmt.Sprintf(" Fantasim - [%d:%d] ", cameraPos.X, cameraPos.Y)
 		print(sz.X/2-len(title)/2, 0, title)
+
+		logLines = updateLogWithServerInfo(logLines)
+
+		if logWindow != nil {
+			logWindow.clear()
+
+			n := 1
+			for y := logWindow.canvas.Size().Y - 1; y >= 0; y-- {
+				i := len(logLines) - n
+				n++
+				if i < 0 {
+					continue
+				}
+				logWindow.print(0, y, logLines[i])
+			}
+		}
 
 		if contextMenu != nil {
 			contextMenu.clear()
