@@ -300,6 +300,16 @@ func update(backBuffer *image.RGBA, cvr *api.CreateViewRequest, rvresp *api.Read
 	return nil
 }
 
+var logLines []string
+
+func glog(s ...interface{}) {
+	logLines = append(logLines, fmt.Sprint(s...))
+}
+
+func glogf(f string, s ...interface{}) {
+	glog(fmt.Sprintf(f, s...))
+}
+
 func Start(apiConn io.ReadWriter, infoConn io.Reader) error {
 	enc := json.NewEncoder(apiConn)
 	dec := json.NewDecoder(apiConn)
@@ -374,19 +384,18 @@ func Start(apiConn io.ReadWriter, infoConn io.Reader) error {
 	var (
 		readViewRequestID = invalidRequestID
 		rvresp            *api.ReadViewResponse
-		contextMenu       *window
-		contextMenuText   []string
-		logWindow         *window
-		logLines          []string
 	)
 
-	glog := func(s ...interface{}) {
-		logLines = append(logLines, fmt.Sprint(s...))
-	}
+	var (
+		ctrlWindowText,
+		contextMenuText []string
+	)
 
-	glogf := func(f string, s ...interface{}) {
-		glog(fmt.Sprintf(f, s...))
-	}
+	var (
+		contextMenu,
+		logWindow,
+		ctrlWindow *window
+	)
 
 	for range time.Tick(time.Second / 15) {
 		for ev := range vsdl.Events() {
@@ -397,23 +406,10 @@ func Start(apiConn io.ReadWriter, infoConn io.Reader) error {
 				switch {
 				case t.Keysym.IsKey(vsdl.EscKey):
 					return nil
-				case t.Keysym.IsKey(vsdl.SpaceKey):
-					id, err := encodeRequest(enc, &api.ViewHomeRequest{viewID})
-					if err != nil {
-						return err
-					}
-
-					if resp, err := decodeResponse(id); err != nil {
-						return err
-					} else {
-						r := resp.(*api.ViewHomeResponse)
-						cameraPos = image.Pt(r.X, r.Y)
-						glogf("Jump to home location: %d,%d", cameraPos.X, cameraPos.Y)
-					}
 				case t.Keysym.Sym == vsdl.Keycode('l'):
 					if logWindow == nil {
 						logWindow = newWindow(
-							" Log ",
+							"Log",
 							image.Rect(2, viewportSize.Y-12, viewportSize.X*2-2, viewportSize.Y-2),
 							tilesetRegister["default"],
 							putch,
@@ -421,8 +417,38 @@ func Start(apiConn io.ReadWriter, infoConn io.Reader) error {
 					} else {
 						logWindow = nil
 					}
+				case t.Keysym.IsKey(vsdl.SpaceKey):
+					if ctrlWindow == nil {
+						resetAllTools()
+						resetMenuWindow()
+
+						ctrlWindow = newWindow(
+							"Menu",
+							image.Rect(viewportSize.X*2-48, 2, viewportSize.X*2-2, viewportSize.Y-2),
+							tilesetRegister["default"],
+							putch,
+						)
+					} else {
+						ctrlWindow = nil
+					}
 				default:
-					log.Printf("%v: %X\n", t.Keysym, t.Keysym.Sym)
+					if ctrlWindow != nil {
+						if cb := updateCtrlWindow(t.Keysym); cb != nil {
+							resetMenuWindow()
+							ctrlWindow = nil
+
+							if err := cb(enc); err != nil {
+								return nil
+							}
+
+							if moveCameraTool != nil {
+								if err := moveCameraTool(enc, viewID, &cameraPos); err != nil {
+									return err
+								}
+								resetAllTools()
+							}
+						}
+					}
 				}
 			case *vsdl.MouseMotionEvent:
 				mousePos = image.Pt(int(t.X), int(t.Y))
@@ -430,9 +456,20 @@ func Start(apiConn io.ReadWriter, infoConn io.Reader) error {
 				if t.State == 1 {
 					switch t.Button {
 					case 1:
+						pX, pY := float64(mousePos.X)/float64(sz.X), float64(mousePos.Y)/float64(sz.Y)
+						mX, mY := float64(viewportSize.X)*pX, float64(viewportSize.Y)*pY
+						mouseWorldPos := cameraPos.Add(image.Pt(int(mX), int(mY)))
+
+						if pickTool != nil {
+							if err := pickTool(enc, mouseWorldPos); err != nil {
+								return err
+							}
+							resetAllTools()
+						}
+					case 3:
 						p := image.Pt(mousePos.X/8, mousePos.Y/16).Add(image.Pt(2, 1))
 						contextMenu = newWindow(
-							" Info ",
+							"Info",
 							image.Rectangle{Min: p, Max: p.Add(image.Pt(32, 16))},
 							tilesetRegister["default"],
 							putch,
@@ -488,18 +525,6 @@ func Start(apiConn io.ReadWriter, infoConn io.Reader) error {
 								contextMenuText = append(contextMenuText, fmt.Sprintf("Height: %v", t.Height))
 							}
 						}
-					case 3:
-						pX, pY := float64(mousePos.X)/float64(sz.X), float64(mousePos.Y)/float64(sz.Y)
-						mX, mY := float64(viewportSize.X)*pX, float64(viewportSize.Y)*pY
-						mouseWorldPos := cameraPos.Add(image.Pt(int(mX), int(mY)))
-
-						id, err := encodeRequest(enc, &api.ExploreLocationRequest{mouseWorldPos.X, mouseWorldPos.Y})
-						if err != nil {
-							return err
-						}
-						discardResponse(id)
-
-						glogf("Explore location: %d,%d", mouseWorldPos.X, mouseWorldPos.Y)
 					}
 				} else {
 					contextMenu = nil
@@ -588,6 +613,18 @@ func Start(apiConn io.ReadWriter, infoConn io.Reader) error {
 			}
 		}
 
+		if ctrlWindow != nil {
+			ctrlWindowText, ctrlWindow.title = updateCtrlWindowText(ctrlWindowText)
+			ctrlWindow.clear()
+			for i, line := range ctrlWindowText {
+				ctrlWindow.print(0, i, line)
+			}
+
+			if len(menuStack) > 1 {
+				ctrlWindow.print(0, ctrlWindow.canvas.Max.Y-4, " Backspace: Go Back")
+			}
+		}
+
 		if contextMenu != nil {
 			contextMenu.clear()
 			for i, s := range contextMenuText {
@@ -595,7 +632,12 @@ func Start(apiConn io.ReadWriter, infoConn io.Reader) error {
 			}
 		}
 
-		putch(mousePos.X/8, mousePos.Y/16, "#219")
+		switch {
+		case pickTool != nil:
+			putch(mousePos.X/8, mousePos.Y/16, "X")
+		default:
+			putch(mousePos.X/8, mousePos.Y/16, "#219")
+		}
 
 		vsdl.Present(backBuffer)
 	}

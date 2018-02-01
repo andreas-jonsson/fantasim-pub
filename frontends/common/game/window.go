@@ -69,9 +69,11 @@ func (w *window) clear() {
 	}
 
 	c := sz.X/2 - len(w.title)/2
+	w.putch(x+c-1, y, " ")
 	for i, r := range w.title {
 		w.putch(x+c+i, y, string(r))
 	}
+	w.putch(x+c+len(w.title), y, " ")
 }
 
 func (w *window) print(x, y int, text string) {
