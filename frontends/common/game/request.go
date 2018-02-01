@@ -71,6 +71,12 @@ func decodeResponseTimeout(id int, timeout time.Duration) (interface{}, error) {
 	}
 }
 
+func decodeResponseAsync(id int, f func(interface{}, error)) {
+	go func() {
+		f(decodeResponse(id))
+	}()
+}
+
 func decodeResponse(id int) (interface{}, error) {
 	return decodeResponseTimeout(id, decodeTimeout)
 }

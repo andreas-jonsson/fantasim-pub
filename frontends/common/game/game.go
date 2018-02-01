@@ -26,6 +26,7 @@ import (
 	"image/png"
 	"io"
 	"log"
+	"strings"
 	"sync/atomic"
 	"time"
 
@@ -405,7 +406,14 @@ func Start(apiConn io.ReadWriter, infoConn io.Reader) error {
 			case *vsdl.KeyDownEvent:
 				switch {
 				case t.Keysym.IsKey(vsdl.EscKey):
-					return nil
+					if hasAnyTool() {
+						resetAllTools()
+					} else if logWindow != nil || ctrlWindow != nil {
+						logWindow = nil
+						ctrlWindow = nil
+					} else {
+						return nil
+					}
 				case t.Keysym.Sym == vsdl.Keycode('l'):
 					if logWindow == nil {
 						logWindow = newWindow(
@@ -437,7 +445,7 @@ func Start(apiConn io.ReadWriter, infoConn io.Reader) error {
 							resetMenuWindow()
 							ctrlWindow = nil
 
-							if err := cb(enc); err != nil {
+							if err := cb(enc, image.Pt(mousePos.X/8, mousePos.Y/16)); err != nil {
 								return nil
 							}
 
@@ -445,7 +453,6 @@ func Start(apiConn io.ReadWriter, infoConn io.Reader) error {
 								if err := moveCameraTool(enc, viewID, &cameraPos); err != nil {
 									return err
 								}
-								resetAllTools()
 							}
 						}
 					}
@@ -460,11 +467,15 @@ func Start(apiConn io.ReadWriter, infoConn io.Reader) error {
 						mX, mY := float64(viewportSize.X)*pX, float64(viewportSize.Y)*pY
 						mouseWorldPos := cameraPos.Add(image.Pt(int(mX), int(mY)))
 
-						if pickTool != nil {
-							if err := pickTool(enc, mouseWorldPos); err != nil {
+						switch {
+						case pickTool != nil:
+							if err := pickTool(enc, image.Pt(mousePos.X/8, mousePos.Y/16), mouseWorldPos); err != nil {
 								return err
 							}
-							resetAllTools()
+						case areaTool != nil:
+							if err := areaTool(enc, image.Rect(areaToolStart.X, areaToolStart.Y, mousePos.X/8, mousePos.Y/16)); err != nil {
+								return err
+							}
 						}
 					case 3:
 						p := image.Pt(mousePos.X/8, mousePos.Y/16).Add(image.Pt(2, 1))
@@ -575,6 +586,15 @@ func Start(apiConn io.ReadWriter, infoConn io.Reader) error {
 
 		if rvresp != nil {
 			update(backBuffer, &cvr, rvresp, responseCameraPos, cameraPos)
+		}
+
+		if areaTool != nil {
+			r := image.Rect(areaToolStart.X, areaToolStart.Y, mousePos.X/8, mousePos.Y/16)
+			s := strings.Repeat("+", r.Size().X+1)
+
+			for y := r.Min.Y; y < r.Max.Y+1; y++ {
+				print(r.Min.X, y, s)
+			}
 		}
 
 		sz := image.Pt(sz.X/8, sz.Y/16)

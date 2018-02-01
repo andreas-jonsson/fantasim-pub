@@ -28,7 +28,7 @@ var (
 	areaToolStart image.Point
 	areaTool      func(*json.Encoder, image.Rectangle) error
 
-	pickTool func(*json.Encoder, image.Point) error
+	pickTool func(*json.Encoder, image.Point, image.Point) error
 
 	moveCameraTool func(enc *json.Encoder, viewID int, cameraPos *image.Point) error
 )
@@ -40,26 +40,51 @@ func resetAllTools() {
 	moveCameraTool = nil
 }
 
-func designateTreeCutting(enc *json.Encoder) error {
-	return nil
+func hasAnyTool() bool {
+	if areaTool != nil || pickTool != nil || moveCameraTool != nil {
+		return true
+	}
+	return false
 }
 
-func exploreLocation(enc *json.Encoder) error {
-	pickTool = func(enc *json.Encoder, p image.Point) error {
-		id, err := encodeRequest(enc, &api.ExploreLocationRequest{p.X, p.Y})
-		if err != nil {
-			return err
-		}
-		discardResponse(id)
+func designateTreeCutting(enc *json.Encoder, _ image.Point) error {
+	pickTool = func(enc *json.Encoder, p, wp image.Point) error {
+		pickTool = nil
+		areaToolStart = p
 
-		glogf("Explore location: %d,%d", p.X, p.Y)
+		areaTool = func(enc *json.Encoder, r image.Rectangle) error {
+			defer resetAllTools()
+
+			// TODO: Implement this.
+
+			glogf("Cut trees: %v", r)
+			return nil
+		}
 		return nil
 	}
 	return nil
 }
 
-func cameraToHomeLocation(enc *json.Encoder) error {
+func exploreLocation(enc *json.Encoder, _ image.Point) error {
+	pickTool = func(enc *json.Encoder, p, wp image.Point) error {
+		defer resetAllTools()
+
+		id, err := encodeRequest(enc, &api.ExploreLocationRequest{wp.X, wp.Y})
+		if err != nil {
+			return err
+		}
+		discardResponse(id)
+
+		glogf("Explore location: %d,%d", wp.X, wp.Y)
+		return nil
+	}
+	return nil
+}
+
+func cameraToHomeLocation(enc *json.Encoder, _ image.Point) error {
 	moveCameraTool = func(enc *json.Encoder, viewID int, cameraPos *image.Point) error {
+		defer resetAllTools()
+
 		id, err := encodeRequest(enc, &api.ViewHomeRequest{viewID})
 		if err != nil {
 			return err
@@ -71,6 +96,29 @@ func cameraToHomeLocation(enc *json.Encoder) error {
 			r := resp.(*api.ViewHomeResponse)
 			*cameraPos = image.Pt(r.X, r.Y)
 			glogf("Jump to home location: %d,%d", r.X, r.Y)
+			return nil
+		}
+	}
+	return nil
+}
+
+func printJobQueue(enc *json.Encoder, _ image.Point) error {
+	moveCameraTool = func(enc *json.Encoder, viewID int, cameraPos *image.Point) error {
+		defer resetAllTools()
+
+		id, err := encodeRequest(enc, &api.JobQueueRequest{})
+		if err != nil {
+			return err
+		}
+
+		if resp, err := decodeResponse(id); err != nil {
+			return err
+		} else {
+			r := resp.(*api.JobQueueResponse)
+			glog("Job queue:")
+			for _, s := range r.Jobs {
+				glog(s)
+			}
 			return nil
 		}
 	}
