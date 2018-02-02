@@ -137,8 +137,9 @@ type UnitStatsRequest struct {
 }
 
 type UnitStatsResponse struct {
-	Health float32 `json:"health"`
-	Thirst float32 `json:"thirst"`
+	Health float32  `json:"health"`
+	Thirst float32  `json:"thirst"`
+	Debug  []string `json:"debug"`
 }
 
 var (

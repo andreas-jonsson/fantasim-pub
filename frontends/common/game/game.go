@@ -414,6 +414,14 @@ func Start(apiConn io.ReadWriter, infoConn io.Reader) error {
 					} else {
 						return nil
 					}
+				case t.Keysym.Sym == vsdl.Keycode('a') && t.Keysym.IsMod(vsdl.CtrlMod):
+					cameraPos.X -= viewportSize.X
+				case t.Keysym.Sym == vsdl.Keycode('d') && t.Keysym.IsMod(vsdl.CtrlMod):
+					cameraPos.X += viewportSize.X
+				case t.Keysym.Sym == vsdl.Keycode('w') && t.Keysym.IsMod(vsdl.CtrlMod):
+					cameraPos.Y -= viewportSize.Y
+				case t.Keysym.Sym == vsdl.Keycode('s') && t.Keysym.IsMod(vsdl.CtrlMod):
+					cameraPos.Y += viewportSize.Y
 				case t.Keysym.Sym == vsdl.Keycode('l'):
 					if logWindow == nil {
 						logWindow = newWindow(
@@ -508,6 +516,10 @@ func Start(apiConn io.ReadWriter, infoConn io.Reader) error {
 										fmt.Sprintf("Unit ID: %v", u.ID),
 										fmt.Sprintf("Health:  %v", r.Health),
 										fmt.Sprintf("Thirst:  %v", r.Thirst),
+										"",
+									}
+									for _, s := range r.Debug {
+										contextMenuText = append(contextMenuText, s)
 									}
 								}
 							} else {
