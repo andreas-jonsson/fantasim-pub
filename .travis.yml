@@ -5,8 +5,8 @@ go:
     # - tip
 
 os:
-    # - linux
-    - osx
+    - linux
+    # - osx
 
 notifications:
     email:
@@ -32,5 +32,5 @@ script:
     - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then ./frontends/tools/package/build_deb.sh; fi
 
 before_deploy:
-    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then export FINAL_PACKAGE=fantasim-sdl-osx.zip; fi
-    - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then export FINAL_PACKAGE=fantasim-sdl-linux.deb; fi
+    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then export FINAL_PACKAGE=fantasim-sdl_osx.zip; fi
+    - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then export FINAL_PACKAGE=fantasim-sdl_linux.deb; fi

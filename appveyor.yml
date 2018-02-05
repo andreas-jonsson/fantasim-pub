@@ -37,7 +37,7 @@ deploy:
     provider: GitHub
     auth_token:
         secure: kcKpWCf8VCWk8VsjncvYS90wjZoY8LSxTPwNHCQ+mmjls5gt4j9dbsIgTw4gt5le
-    artifact: frontends/sdl/fantasim-sdl-setup.exe
+    artifact: frontends/sdl/fantasim-sdl_windows.exe
     draft: false
     prerelease: true
     on:
