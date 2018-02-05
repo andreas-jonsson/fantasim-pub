@@ -5,8 +5,8 @@ go:
     # - tip
 
 os:
-    - linux
-    # - osx
+    # - linux
+    - osx
 
 notifications:
     email:
