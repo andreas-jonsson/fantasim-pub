@@ -22,7 +22,7 @@ install:
 build_script:
     - cd frontends\sdl
     - go get github.com/akavel/rsrc
-    - rsrc -ico=icon.ico -arch=amd64
+    - rsrc -ico=../tools/package/icon.ico -arch=amd64
     - go get -v
     - go build -o fantasim-sdl.exe -ldflags="-H windowsgui"
 
