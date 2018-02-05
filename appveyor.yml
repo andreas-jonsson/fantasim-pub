@@ -27,10 +27,10 @@ build_script:
     - go build -o fantasim-sdl.exe -ldflags="-H windowsgui"
 
 after_build:
-    - iscc /Qp /O".\" setup.iss
+    - iscc /Qp /O".\" ..\tools\package\setup.iss
 
 artifacts:
-    - path: frontends/sdl/fantasim-sdl-setup.exe
+    - path: frontends/sdl/fantasim-sdl_windows.exe
 
 deploy:
     description: 'Fantasim SDL'

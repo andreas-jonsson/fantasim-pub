@@ -1,0 +1,36 @@
+language: go
+
+go:
+    - 1.9
+    # - tip
+
+os:
+    - linux
+    # - osx
+
+notifications:
+    email:
+        on_success: never
+        on_failure: always
+
+install:
+    - export FANTASIM_SDL_VERSION=0.0.1
+    - export SDL_PREFIX=/usr/local
+
+    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install dylibbundler; fi
+    - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get install -y rpl; fi
+
+    - ./frontends/tools/sdl_from_source.sh
+
+script:
+    - cd frontends\sdl
+    - go get -v
+    - go build -o fantasim-sdl
+    - cd ../../
+
+    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then ./frontends/tools/package/build_app.sh; fi
+    - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then ./frontends/tools/package/build_deb.sh; fi
+
+before_deploy:
+    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then export FINAL_PACKAGE=fantasim-sdl-osx.zip; fi
+    - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then export FINAL_PACKAGE=fantasim-sdl-linux.deb; fi
