@@ -33,7 +33,7 @@ ArchitecturesInstallIn64BitMode=x64
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Files]
-Source: "fantasim-sdl.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\..\sdl\fantasim-sdl.exe"; DestDir: "{app}"; Flags: ignoreversion
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]
