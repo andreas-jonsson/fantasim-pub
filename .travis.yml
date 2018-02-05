@@ -23,7 +23,7 @@ install:
     - ./frontends/tools/sdl_from_source.sh
 
 script:
-    - cd frontends\sdl
+    - cd frontends/sdl
     - go get -v
     - go build -o fantasim-sdl
     - cd ../../
