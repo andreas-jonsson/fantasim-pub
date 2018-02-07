@@ -14,12 +14,12 @@ notifications:
 
 install:
     - export FANTASIM_SDL_VERSION=0.0.1
-    - export SDL_PREFIX=/usr/local
+    # - export SDL_PREFIX=/usr/local
 
     - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install dylibbundler; fi
-    - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get install -y rpl; fi
+    - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get install -y rpl libsdl2-dev; fi
 
-    - ./frontends/tools/sdl_from_source.sh
+    # - ./frontends/tools/sdl_from_source.sh
 
 script:
     - cd frontends/sdl
