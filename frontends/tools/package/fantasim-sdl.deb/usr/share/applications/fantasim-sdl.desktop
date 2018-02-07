@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=Fantasim-SDL
+Exec=/usr/local/bin/fantasim-sdl -url="%u"
+Icon=
+Type=Application
+Terminal=false
+MimeType=x-scheme-handler/fantasim;
