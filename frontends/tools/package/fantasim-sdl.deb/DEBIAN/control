@@ -6,4 +6,4 @@ Architecture: amd64
 Depends: libsdl2-2.0-0 (>= 2.0.4)
 Maintainer: Andreas T Jonsson <mail@andreasjonsson.se>
 Description: Fantasim is a fantasy world simulator game similar to Dwarf Fortress and Goblin Camp.
-The game is under heavy development and not yet playable.
+ The game is under heavy development and not yet playable.
