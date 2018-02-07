@@ -27,5 +27,16 @@
     <string>Copyright © 2017-2018 Andreas T Jonsson, GNU General Public License.</string>
     <key>LSMinimumSystemVersion</key>
     <string>10.4</string>
+    <key>CFBundleURLTypes</key>
+    <array>
+        <dict>
+            <key>CFBundleURLName</key>
+            <string>Fantasim</string>
+            <key>CFBundleURLSchemes</key>
+            <array>
+                <string>fantasim</string>
+            </array>
+        </dict>
+    </array>
 </dict>
 </plist>
