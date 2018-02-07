@@ -40,7 +40,7 @@ deploy:
     file_glob: true
     file: "${FINAL_PACKAGE}"
     on:
-        # tags: true
+        tags: true
         repo: andreas-jonsson/fantasim-pub
     api-key:
         secure: jsjPG5uAuIxNeMV2jKpJXvpkeQykXuRiH88r9TmmSVQIBpMBqSHHtzT73rrePKsZOIJvApgSxq2n28nMFvm+LzkF/q2X2yEA5Db48AnK3K2hZvNkIHYGOrve6812t4ie3D9xW/psX7JdDgGn1qfKH3G9Hx0rjCxKjGYEszQnDrZaW4LsdUWgISr327Ieprge1EsFXRYBXmGXoPoa3cgXa9c+HtNickC8njnaM+G1ZPYN2C0bBOX4QpK9qRgLhRkU4Iq9TCz0MrpV4epK/msYapl8m/3Z4DIthvXN2wZ6B8il0H43m99rWYqci9EkYzjhXteA5TfpZ49SKjWfCfRyL5Lp+Sz2C/Ar7eOs9+XwZN747d857+9JjgxVxC2HWTDyNjOPpfuiTOu/1W1OvCf+vlAH8ft8d7ZhD33XLqs4/7PJw89I0NCDKOJZSt6jGn3dWo4k3lzVklcUmn9eu257gDJcQicCTLUCZU+IsHtIZ4XImdrfJkbWjKprHW0bOBTWA8jinQ6sRB4WGQjxZPkkk21tA7HLXQpcDwZKqbbJCbhVgZjPI8GE9kOxA5ITSat2kmXRmeK2Fy5vC82fjOpLZxOeHKNvULQNPtbqM65mbKxy+dg26MiIFm3naTm6KnmkoK8s+8Y1M5JEjbxdyyrYAw45gyU3NKvknpNkyCR6+Gs=
