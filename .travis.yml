@@ -4,7 +4,7 @@ go:
 
 os:
     - linux
-    # -osx
+    - osx
 
 notifications:
     email:
