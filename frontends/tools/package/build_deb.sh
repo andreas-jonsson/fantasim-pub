@@ -13,3 +13,5 @@ rpl e34f19fc-299d-4fb9-b334-aed07b29a273 $TRAVIS_BUILD_NUMBER $DIR/DEBIAN/contro
 
 dpkg-deb --build $DIR
 rm -rf $DIR
+
+ls -al
