@@ -1,6 +1,6 @@
 [Desktop Entry]
 Name=Fantasim-SDL
-Exec=/usr/local/bin/fantasim-sdl -url=%u
+Exec=/usr/local/bin/fantasim-sdl -url=\"%u\"
 Icon=
 Type=Application
 Terminal=false
