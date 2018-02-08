@@ -330,349 +330,349 @@ func Start(apiConn io.ReadWriter, infoConn io.Reader) error {
 
 	sz := image.Pt(1280, 720)
 	backBuffer := image.NewRGBA(image.Rectangle{Max: sz})
-	if err := vsdl.Initialize(vsdl.ConfigWithRenderer(sz, image.ZP)); err != nil {
-		return err
-	}
-	defer vsdl.Shutdown()
 
-	viewportSize := image.Pt(sz.X/16, sz.Y/16)
-	cameraPos := image.Pt(0, 0)
-	requestedCameraPos := cameraPos
-	responseCameraPos := cameraPos
-	mousePos := sz.Div(2)
+	sdlMain := func() error {
+		viewportSize := image.Pt(sz.X/16, sz.Y/16)
+		cameraPos := image.Pt(0, 0)
+		requestedCameraPos := cameraPos
+		responseCameraPos := cameraPos
+		mousePos := sz.Div(2)
 
-	cvr := api.CreateViewRequest{
-		X: cameraPos.X,
-		Y: cameraPos.Y,
-		W: cameraPos.X + viewportSize.X,
-		H: cameraPos.Y + viewportSize.Y,
-	}
-
-	id, err := encodeRequest(enc, &cvr)
-	if err != nil {
-		return err
-	}
-
-	obj, err := decodeResponse(id)
-	if err != nil {
-		return err
-	}
-
-	viewID := obj.(*api.CreateViewResponse).ViewID
-
-	id, err = encodeRequest(enc, &api.ViewHomeRequest{viewID})
-	if err != nil {
-		return err
-	}
-
-	if resp, err := decodeResponse(id); err != nil {
-		return err
-	} else {
-		r := resp.(*api.ViewHomeResponse)
-		cameraPos = image.Pt(r.X, r.Y)
-	}
-
-	putch := func(x, y int, ch string) {
-		blitImage(backBuffer, image.Pt(x*8, y*16), tilesetRegister["default"][ch], color.RGBA{R: 0xFF, G: 0xFF, B: 0xFF, A: 0xFF}, color.RGBA{A: 0xFF})
-	}
-
-	print := func(x, y int, text string) {
-		for i, r := range text {
-			putch(x+i, y, string(r))
+		cvr := api.CreateViewRequest{
+			X: cameraPos.X,
+			Y: cameraPos.Y,
+			W: cameraPos.X + viewportSize.X,
+			H: cameraPos.Y + viewportSize.Y,
 		}
-	}
 
-	var (
-		readViewRequestID = invalidRequestID
-		rvresp            *api.ReadViewResponse
-	)
+		id, err := encodeRequest(enc, &cvr)
+		if err != nil {
+			return err
+		}
 
-	var (
-		ctrlWindowText,
-		contextMenuText []string
-	)
+		obj, err := decodeResponse(id)
+		if err != nil {
+			return err
+		}
 
-	var (
-		contextMenu,
-		logWindow,
-		ctrlWindow *window
-	)
+		viewID := obj.(*api.CreateViewResponse).ViewID
 
-	for range time.Tick(time.Second / 15) {
-		for ev := range vsdl.Events() {
-			switch t := ev.(type) {
-			case *vsdl.QuitEvent:
-				return nil
-			case *vsdl.KeyDownEvent:
-				switch {
-				case t.Keysym.IsKey(vsdl.EscKey):
-					if hasAnyTool() {
-						resetAllTools()
-					} else if logWindow != nil || ctrlWindow != nil {
-						logWindow = nil
-						ctrlWindow = nil
-					} else {
-						return nil
-					}
-				case t.Keysym.Sym == vsdl.Keycode('a') && t.Keysym.IsMod(vsdl.CtrlMod):
-					cameraPos.X -= viewportSize.X
-				case t.Keysym.Sym == vsdl.Keycode('d') && t.Keysym.IsMod(vsdl.CtrlMod):
-					cameraPos.X += viewportSize.X
-				case t.Keysym.Sym == vsdl.Keycode('w') && t.Keysym.IsMod(vsdl.CtrlMod):
-					cameraPos.Y -= viewportSize.Y
-				case t.Keysym.Sym == vsdl.Keycode('s') && t.Keysym.IsMod(vsdl.CtrlMod):
-					cameraPos.Y += viewportSize.Y
-				case t.Keysym.Sym == vsdl.Keycode('l'):
-					if logWindow == nil {
-						logWindow = newWindow(
-							"Log",
-							image.Rect(2, viewportSize.Y-12, viewportSize.X*2-2, viewportSize.Y-2),
-							tilesetRegister["default"],
-							putch,
-						)
-					} else {
-						logWindow = nil
-					}
-				case t.Keysym.IsKey(vsdl.SpaceKey):
-					if ctrlWindow == nil {
-						resetAllTools()
-						resetMenuWindow()
+		id, err = encodeRequest(enc, &api.ViewHomeRequest{viewID})
+		if err != nil {
+			return err
+		}
 
-						ctrlWindow = newWindow(
-							"Menu",
-							image.Rect(viewportSize.X*2-48, 2, viewportSize.X*2-2, viewportSize.Y-2),
-							tilesetRegister["default"],
-							putch,
-						)
-					} else {
-						ctrlWindow = nil
-					}
-				default:
-					if ctrlWindow != nil {
-						if cb := updateCtrlWindow(t.Keysym); cb != nil {
-							resetMenuWindow()
-							ctrlWindow = nil
+		if resp, err := decodeResponse(id); err != nil {
+			return err
+		} else {
+			r := resp.(*api.ViewHomeResponse)
+			cameraPos = image.Pt(r.X, r.Y)
+		}
 
-							if err := cb(enc, image.Pt(mousePos.X/8, mousePos.Y/16)); err != nil {
-								return nil
-							}
+		putch := func(x, y int, ch string) {
+			blitImage(backBuffer, image.Pt(x*8, y*16), tilesetRegister["default"][ch], color.RGBA{R: 0xFF, G: 0xFF, B: 0xFF, A: 0xFF}, color.RGBA{A: 0xFF})
+		}
 
-							if moveCameraTool != nil {
-								if err := moveCameraTool(enc, viewID, &cameraPos); err != nil {
-									return err
-								}
-							}
-						}
-					}
-				}
-			case *vsdl.MouseMotionEvent:
-				mousePos = image.Pt(int(t.X), int(t.Y))
-			case *vsdl.MouseButtonEvent:
-				if t.State == 1 {
-					switch t.Button {
-					case 1:
-						pX, pY := float64(mousePos.X)/float64(sz.X), float64(mousePos.Y)/float64(sz.Y)
-						mX, mY := float64(viewportSize.X)*pX, float64(viewportSize.Y)*pY
-						mouseWorldPos := cameraPos.Add(image.Pt(int(mX), int(mY)))
-
-						switch {
-						case pickTool != nil:
-							if err := pickTool(enc, image.Pt(mousePos.X/8, mousePos.Y/16), mouseWorldPos); err != nil {
-								return err
-							}
-						case areaTool != nil:
-							if err := areaTool(enc, image.Rect(areaToolStart.X, areaToolStart.Y, mousePos.X/8, mousePos.Y/16)); err != nil {
-								return err
-							}
-						}
-					case 3:
-						p := image.Pt(mousePos.X/8, mousePos.Y/16).Add(image.Pt(2, 1))
-						contextMenu = newWindow(
-							"Info",
-							image.Rectangle{Min: p, Max: p.Add(image.Pt(32, 16))},
-							tilesetRegister["default"],
-							putch,
-						)
-
-						if rvresp != nil {
-							p := image.Pt(mousePos.X/16, mousePos.Y/16)
-							i := viewportSize.X*p.Y + p.X
-							t := rvresp.Data[i]
-							units := t.Units
-
-							if len(units) > 0 {
-								u := units[0]
-
-								id, err := encodeRequest(enc, &api.UnitStatsRequest{int(u.ID)})
-								if err != nil {
-									return err
-								}
-
-								if resp, err := decodeResponse(id); err != nil {
-									return err
-								} else {
-									r := resp.(*api.UnitStatsResponse)
-									contextMenuText = []string{
-										fmt.Sprintf("Unit ID: %v", u.ID),
-										fmt.Sprintf("Health:  %v", r.Health),
-										fmt.Sprintf("Thirst:  %v", r.Thirst),
-										"",
-									}
-									for _, s := range r.Debug {
-										contextMenuText = append(contextMenuText, s)
-									}
-								}
-							} else {
-								switch {
-								case t.Flags.Is(api.Water):
-									contextMenuText = append(contextMenuText, "Tile: Water")
-								case t.Flags.Is(api.Sand):
-									contextMenuText = append(contextMenuText, "Tile: Sand")
-								case t.Flags.Is(api.Snow):
-									contextMenuText = append(contextMenuText, "Tile: Snow")
-								default:
-									contextMenuText = append(contextMenuText, "Tile: Grass")
-								}
-
-								switch {
-								case t.Flags.Is(api.Tree):
-									contextMenuText = append(contextMenuText, "Object: Tree")
-								case t.Flags.Is(api.Bush):
-									contextMenuText = append(contextMenuText, "Object: Bush")
-								case t.Flags.Is(api.Bush):
-									contextMenuText = append(contextMenuText, "Object: Plant")
-								case t.Flags.Is(api.Bush):
-									contextMenuText = append(contextMenuText, "Object: Stone")
-								}
-
-								contextMenuText = append(contextMenuText, fmt.Sprintf("Height: %v", t.Height))
-							}
-						}
-					}
-				} else {
-					contextMenu = nil
-					contextMenuText = nil
-				}
+		print := func(x, y int, text string) {
+			for i, r := range text {
+				putch(x+i, y, string(r))
 			}
-			ev.Release()
 		}
 
-		const (
-			screenEdgeX = 8
-			screenEdgeY = 16
+		var (
+			readViewRequestID = invalidRequestID
+			rvresp            *api.ReadViewResponse
 		)
 
-		if mousePos.X < screenEdgeX {
-			cameraPos.X--
-		} else if mousePos.X > sz.X-screenEdgeX {
-			cameraPos.X++
-		}
-		if mousePos.Y < screenEdgeY {
-			cameraPos.Y--
-		} else if mousePos.Y > sz.Y-screenEdgeY {
-			cameraPos.Y++
-		}
+		var (
+			ctrlWindowText,
+			contextMenuText []string
+		)
 
-		if readViewRequestID == invalidRequestID {
-			requestedCameraPos = cameraPos
-			uvr := api.UpdateViewRequest{ViewID: viewID, X: cameraPos.X, Y: cameraPos.Y}
+		var (
+			contextMenu,
+			logWindow,
+			ctrlWindow *window
+		)
 
-			id, err := encodeRequest(enc, &uvr)
-			if err != nil {
-				return err
-			}
-			discardResponse(id)
+		for range time.Tick(time.Second / 15) {
+			for ev := range vsdl.Events() {
+				switch t := ev.(type) {
+				case *vsdl.QuitEvent:
+					return nil
+				case *vsdl.KeyDownEvent:
+					switch {
+					case t.Keysym.IsKey(vsdl.EscKey):
+						if hasAnyTool() {
+							resetAllTools()
+						} else if logWindow != nil || ctrlWindow != nil {
+							logWindow = nil
+							ctrlWindow = nil
+						} else {
+							return nil
+						}
+					case t.Keysym.Sym == vsdl.Keycode('a') && t.Keysym.IsMod(vsdl.CtrlMod):
+						cameraPos.X -= viewportSize.X
+					case t.Keysym.Sym == vsdl.Keycode('d') && t.Keysym.IsMod(vsdl.CtrlMod):
+						cameraPos.X += viewportSize.X
+					case t.Keysym.Sym == vsdl.Keycode('w') && t.Keysym.IsMod(vsdl.CtrlMod):
+						cameraPos.Y -= viewportSize.Y
+					case t.Keysym.Sym == vsdl.Keycode('s') && t.Keysym.IsMod(vsdl.CtrlMod):
+						cameraPos.Y += viewportSize.Y
+					case t.Keysym.Sym == vsdl.Keycode('l'):
+						if logWindow == nil {
+							logWindow = newWindow(
+								"Log",
+								image.Rect(2, viewportSize.Y-12, viewportSize.X*2-2, viewportSize.Y-2),
+								tilesetRegister["default"],
+								putch,
+							)
+						} else {
+							logWindow = nil
+						}
+					case t.Keysym.IsKey(vsdl.SpaceKey):
+						if ctrlWindow == nil {
+							resetAllTools()
+							resetMenuWindow()
 
-			rvr := api.ReadViewRequest{ViewID: viewID}
-			readViewRequestID, err = encodeRequest(enc, &rvr)
-			if err != nil {
-				return err
-			}
-		}
+							ctrlWindow = newWindow(
+								"Menu",
+								image.Rect(viewportSize.X*2-48, 2, viewportSize.X*2-2, viewportSize.Y-2),
+								tilesetRegister["default"],
+								putch,
+							)
+						} else {
+							ctrlWindow = nil
+						}
+					default:
+						if ctrlWindow != nil {
+							if cb := updateCtrlWindow(t.Keysym); cb != nil {
+								resetMenuWindow()
+								ctrlWindow = nil
 
-		if obj, err := decodeResponseTimeout(readViewRequestID, time.Millisecond); err == nil {
-			readViewRequestID = invalidRequestID
-			responseCameraPos = requestedCameraPos
-			rvresp = obj.(*api.ReadViewResponse)
-		}
+								if err := cb(enc, image.Pt(mousePos.X/8, mousePos.Y/16)); err != nil {
+									return nil
+								}
 
-		if rvresp != nil {
-			update(backBuffer, &cvr, rvresp, responseCameraPos, cameraPos)
-		}
+								if moveCameraTool != nil {
+									if err := moveCameraTool(enc, viewID, &cameraPos); err != nil {
+										return err
+									}
+								}
+							}
+						}
+					}
+				case *vsdl.MouseMotionEvent:
+					mousePos = image.Pt(int(t.X), int(t.Y))
+				case *vsdl.MouseButtonEvent:
+					if t.State == 1 {
+						switch t.Button {
+						case 1:
+							pX, pY := float64(mousePos.X)/float64(sz.X), float64(mousePos.Y)/float64(sz.Y)
+							mX, mY := float64(viewportSize.X)*pX, float64(viewportSize.Y)*pY
+							mouseWorldPos := cameraPos.Add(image.Pt(int(mX), int(mY)))
 
-		if areaTool != nil {
-			r := image.Rect(areaToolStart.X, areaToolStart.Y, mousePos.X/8, mousePos.Y/16)
-			s := strings.Repeat("+", r.Size().X+1)
+							switch {
+							case pickTool != nil:
+								if err := pickTool(enc, image.Pt(mousePos.X/8, mousePos.Y/16), mouseWorldPos); err != nil {
+									return err
+								}
+							case areaTool != nil:
+								if err := areaTool(enc, image.Rect(areaToolStart.X, areaToolStart.Y, mousePos.X/8, mousePos.Y/16)); err != nil {
+									return err
+								}
+							}
+						case 3:
+							p := image.Pt(mousePos.X/8, mousePos.Y/16).Add(image.Pt(2, 1))
+							contextMenu = newWindow(
+								"Info",
+								image.Rectangle{Min: p, Max: p.Add(image.Pt(32, 16))},
+								tilesetRegister["default"],
+								putch,
+							)
 
-			for y := r.Min.Y; y < r.Max.Y+1; y++ {
-				print(r.Min.X, y, s)
-			}
-		}
+							if rvresp != nil {
+								p := image.Pt(mousePos.X/16, mousePos.Y/16)
+								i := viewportSize.X*p.Y + p.X
+								t := rvresp.Data[i]
+								units := t.Units
 
-		sz := image.Pt(sz.X/8, sz.Y/16)
+								if len(units) > 0 {
+									u := units[0]
 
-		for i := 1; i < sz.X-1; i++ {
-			putch(i, 0, "#196")
-			putch(i, sz.Y-1, "#196")
-		}
+									id, err := encodeRequest(enc, &api.UnitStatsRequest{int(u.ID)})
+									if err != nil {
+										return err
+									}
 
-		putch(0, 0, "#218")
-		putch(sz.X-1, 0, "#191")
-		putch(0, sz.Y-1, "#192")
-		putch(sz.X-1, sz.Y-1, "#217")
+									if resp, err := decodeResponse(id); err != nil {
+										return err
+									} else {
+										r := resp.(*api.UnitStatsResponse)
+										contextMenuText = []string{
+											fmt.Sprintf("Unit ID: %v", u.ID),
+											fmt.Sprintf("Health:  %v", r.Health),
+											fmt.Sprintf("Thirst:  %v", r.Thirst),
+											"",
+										}
+										for _, s := range r.Debug {
+											contextMenuText = append(contextMenuText, s)
+										}
+									}
+								} else {
+									switch {
+									case t.Flags.Is(api.Water):
+										contextMenuText = append(contextMenuText, "Tile: Water")
+									case t.Flags.Is(api.Sand):
+										contextMenuText = append(contextMenuText, "Tile: Sand")
+									case t.Flags.Is(api.Snow):
+										contextMenuText = append(contextMenuText, "Tile: Snow")
+									default:
+										contextMenuText = append(contextMenuText, "Tile: Grass")
+									}
 
-		for i := 1; i < sz.Y-1; i++ {
-			putch(0, i, "#179")
-			putch(sz.X-1, i, "#179")
-		}
+									switch {
+									case t.Flags.Is(api.Tree):
+										contextMenuText = append(contextMenuText, "Object: Tree")
+									case t.Flags.Is(api.Bush):
+										contextMenuText = append(contextMenuText, "Object: Bush")
+									case t.Flags.Is(api.Bush):
+										contextMenuText = append(contextMenuText, "Object: Plant")
+									case t.Flags.Is(api.Bush):
+										contextMenuText = append(contextMenuText, "Object: Stone")
+									}
 
-		title := fmt.Sprintf(" Fantasim - [%d:%d] ", cameraPos.X, cameraPos.Y)
-		print(sz.X/2-len(title)/2, 0, title)
-
-		logLines = updateLogWithServerInfo(logLines)
-
-		if logWindow != nil {
-			logWindow.clear()
-
-			n := 1
-			for y := logWindow.canvas.Size().Y - 1; y >= 0; y-- {
-				i := len(logLines) - n
-				n++
-				if i < 0 {
-					continue
+									contextMenuText = append(contextMenuText, fmt.Sprintf("Height: %v", t.Height))
+								}
+							}
+						}
+					} else {
+						contextMenu = nil
+						contextMenuText = nil
+					}
 				}
-				logWindow.print(0, y, logLines[i])
-			}
-		}
-
-		if ctrlWindow != nil {
-			ctrlWindowText, ctrlWindow.title = updateCtrlWindowText(ctrlWindowText)
-			ctrlWindow.clear()
-			for i, line := range ctrlWindowText {
-				ctrlWindow.print(0, i, line)
+				ev.Release()
 			}
 
-			if len(menuStack) > 1 {
-				ctrlWindow.print(0, ctrlWindow.canvas.Max.Y-4, " Backspace: Go Back")
+			const (
+				screenEdgeX = 8
+				screenEdgeY = 16
+			)
+
+			if mousePos.X < screenEdgeX {
+				cameraPos.X--
+			} else if mousePos.X > sz.X-screenEdgeX {
+				cameraPos.X++
 			}
-		}
-
-		if contextMenu != nil {
-			contextMenu.clear()
-			for i, s := range contextMenuText {
-				contextMenu.print(0, i, s)
+			if mousePos.Y < screenEdgeY {
+				cameraPos.Y--
+			} else if mousePos.Y > sz.Y-screenEdgeY {
+				cameraPos.Y++
 			}
+
+			if readViewRequestID == invalidRequestID {
+				requestedCameraPos = cameraPos
+				uvr := api.UpdateViewRequest{ViewID: viewID, X: cameraPos.X, Y: cameraPos.Y}
+
+				id, err := encodeRequest(enc, &uvr)
+				if err != nil {
+					return err
+				}
+				discardResponse(id)
+
+				rvr := api.ReadViewRequest{ViewID: viewID}
+				readViewRequestID, err = encodeRequest(enc, &rvr)
+				if err != nil {
+					return err
+				}
+			}
+
+			if obj, err := decodeResponseTimeout(readViewRequestID, time.Millisecond); err == nil {
+				readViewRequestID = invalidRequestID
+				responseCameraPos = requestedCameraPos
+				rvresp = obj.(*api.ReadViewResponse)
+			}
+
+			if rvresp != nil {
+				update(backBuffer, &cvr, rvresp, responseCameraPos, cameraPos)
+			}
+
+			if areaTool != nil {
+				r := image.Rect(areaToolStart.X, areaToolStart.Y, mousePos.X/8, mousePos.Y/16)
+				s := strings.Repeat("+", r.Size().X+1)
+
+				for y := r.Min.Y; y < r.Max.Y+1; y++ {
+					print(r.Min.X, y, s)
+				}
+			}
+
+			sz := image.Pt(sz.X/8, sz.Y/16)
+
+			for i := 1; i < sz.X-1; i++ {
+				putch(i, 0, "#196")
+				putch(i, sz.Y-1, "#196")
+			}
+
+			putch(0, 0, "#218")
+			putch(sz.X-1, 0, "#191")
+			putch(0, sz.Y-1, "#192")
+			putch(sz.X-1, sz.Y-1, "#217")
+
+			for i := 1; i < sz.Y-1; i++ {
+				putch(0, i, "#179")
+				putch(sz.X-1, i, "#179")
+			}
+
+			title := fmt.Sprintf(" Fantasim - [%d:%d] ", cameraPos.X, cameraPos.Y)
+			print(sz.X/2-len(title)/2, 0, title)
+
+			logLines = updateLogWithServerInfo(logLines)
+
+			if logWindow != nil {
+				logWindow.clear()
+
+				n := 1
+				for y := logWindow.canvas.Size().Y - 1; y >= 0; y-- {
+					i := len(logLines) - n
+					n++
+					if i < 0 {
+						continue
+					}
+					logWindow.print(0, y, logLines[i])
+				}
+			}
+
+			if ctrlWindow != nil {
+				ctrlWindowText, ctrlWindow.title = updateCtrlWindowText(ctrlWindowText)
+				ctrlWindow.clear()
+				for i, line := range ctrlWindowText {
+					ctrlWindow.print(0, i, line)
+				}
+
+				if len(menuStack) > 1 {
+					ctrlWindow.print(0, ctrlWindow.canvas.Max.Y-4, " Backspace: Go Back")
+				}
+			}
+
+			if contextMenu != nil {
+				contextMenu.clear()
+				for i, s := range contextMenuText {
+					contextMenu.print(0, i, s)
+				}
+			}
+
+			switch {
+			case pickTool != nil:
+				putch(mousePos.X/8, mousePos.Y/16, "X")
+			default:
+				putch(mousePos.X/8, mousePos.Y/16, "#219")
+			}
+
+			vsdl.Present(backBuffer)
 		}
 
-		switch {
-		case pickTool != nil:
-			putch(mousePos.X/8, mousePos.Y/16, "X")
-		default:
-			putch(mousePos.X/8, mousePos.Y/16, "#219")
-		}
-
-		vsdl.Present(backBuffer)
+		return nil
 	}
 
-	return nil
+	return vsdl.Initialize(sdlMain, vsdl.ConfigWithRenderer(sz, image.ZP))
 }
