@@ -18,7 +18,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 package game
 
 import (
-	"encoding/json"
 	"errors"
 	"log"
 	"time"
@@ -42,7 +41,7 @@ type asyncResponse struct {
 	id  int
 }
 
-func encodeRequest(enc *json.Encoder, obj interface{}) (int, error) {
+func encodeRequest(enc api.Encoder, obj interface{}) (int, error) {
 	if requestID++; requestID == invalidRequestID {
 		requestID++
 	}
@@ -87,7 +86,7 @@ func discardResponse(id int) {
 	}()
 }
 
-func startAsyncDecoder(dec *json.Decoder) {
+func startAsyncDecoder(dec api.Decoder) {
 	responseChan = make(chan asyncResponse, 1024)
 	go func() {
 		for {
@@ -102,7 +101,7 @@ func startAsyncDecoder(dec *json.Decoder) {
 	}()
 }
 
-func startInfoDecode(dec *json.Decoder) {
+func startInfoDecode(dec api.Decoder) {
 	infoChan = make(chan string, 1024)
 	go func() {
 		for {

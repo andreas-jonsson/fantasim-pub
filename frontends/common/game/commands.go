@@ -18,7 +18,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 package game
 
 import (
-	"encoding/json"
 	"image"
 
 	"github.com/andreas-jonsson/fantasim-pub/api"
@@ -26,11 +25,11 @@ import (
 
 var (
 	areaToolStart image.Point
-	areaTool      func(*json.Encoder, image.Rectangle) error
+	areaTool      func(api.Encoder, image.Rectangle) error
 
-	pickTool func(*json.Encoder, image.Point, image.Point) error
+	pickTool func(api.Encoder, image.Point, image.Point) error
 
-	moveCameraTool func(enc *json.Encoder, viewID int, cameraPos *image.Point) error
+	moveCameraTool func(enc api.Encoder, viewID int, cameraPos *image.Point) error
 )
 
 func resetAllTools() {
@@ -47,12 +46,12 @@ func hasAnyTool() bool {
 	return false
 }
 
-func designateTreeCutting(enc *json.Encoder, _ image.Point) error {
-	pickTool = func(enc *json.Encoder, p, wp image.Point) error {
+func designateTreeCutting(enc api.Encoder, _ image.Point) error {
+	pickTool = func(enc api.Encoder, p, wp image.Point) error {
 		pickTool = nil
 		areaToolStart = p
 
-		areaTool = func(enc *json.Encoder, r image.Rectangle) error {
+		areaTool = func(enc api.Encoder, r image.Rectangle) error {
 			defer resetAllTools()
 
 			// TODO: Implement this.
@@ -65,8 +64,8 @@ func designateTreeCutting(enc *json.Encoder, _ image.Point) error {
 	return nil
 }
 
-func exploreLocation(enc *json.Encoder, _ image.Point) error {
-	pickTool = func(enc *json.Encoder, p, wp image.Point) error {
+func exploreLocation(enc api.Encoder, _ image.Point) error {
+	pickTool = func(enc api.Encoder, p, wp image.Point) error {
 		defer resetAllTools()
 
 		id, err := encodeRequest(enc, &api.ExploreLocationRequest{wp.X, wp.Y})
@@ -81,8 +80,8 @@ func exploreLocation(enc *json.Encoder, _ image.Point) error {
 	return nil
 }
 
-func cameraToHomeLocation(enc *json.Encoder, _ image.Point) error {
-	moveCameraTool = func(enc *json.Encoder, viewID int, cameraPos *image.Point) error {
+func cameraToHomeLocation(enc api.Encoder, _ image.Point) error {
+	moveCameraTool = func(enc api.Encoder, viewID int, cameraPos *image.Point) error {
 		defer resetAllTools()
 
 		id, err := encodeRequest(enc, &api.ViewHomeRequest{viewID})
@@ -102,8 +101,8 @@ func cameraToHomeLocation(enc *json.Encoder, _ image.Point) error {
 	return nil
 }
 
-func printJobQueue(enc *json.Encoder, _ image.Point) error {
-	moveCameraTool = func(enc *json.Encoder, viewID int, cameraPos *image.Point) error {
+func printJobQueue(enc api.Encoder, _ image.Point) error {
+	moveCameraTool = func(enc api.Encoder, viewID int, cameraPos *image.Point) error {
 		defer resetAllTools()
 
 		id, err := encodeRequest(enc, &api.JobQueueRequest{})

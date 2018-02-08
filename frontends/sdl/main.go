@@ -20,6 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 package main
 
 import (
+	"encoding/gob"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -75,12 +76,19 @@ func main() {
 	}
 	defer infoWs.Close()
 
-	enc := json.NewEncoder(io.MultiWriter(apiWs, infoWs))
-	if err := enc.Encode(&playerKey); err != nil {
+	if err := json.NewEncoder(io.MultiWriter(apiWs, infoWs)).Encode(&playerKey); err != nil {
 		log.Fatalln(err)
 	}
 
-	if err := game.Start(apiWs, infoWs); err != nil {
+	if err := json.NewEncoder(apiWs).Encode("gob"); err != nil {
+		log.Fatalln(err)
+	}
+
+	enc := gob.NewEncoder(apiWs)
+	dec := gob.NewDecoder(apiWs)
+	decInfo := json.NewDecoder(infoWs)
+
+	if err := game.Start(enc, dec, decInfo); err != nil {
 		log.Fatalln(err)
 	}
 }

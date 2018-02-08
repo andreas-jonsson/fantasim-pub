@@ -24,7 +24,6 @@ import (
 	"image/color"
 	"image/draw"
 	"image/png"
-	"io"
 	"log"
 	"strings"
 	"sync/atomic"
@@ -311,11 +310,7 @@ func glogf(f string, s ...interface{}) {
 	glog(fmt.Sprintf(f, s...))
 }
 
-func Start(apiConn io.ReadWriter, infoConn io.Reader) error {
-	enc := json.NewEncoder(apiConn)
-	dec := json.NewDecoder(apiConn)
-	decInfo := json.NewDecoder(infoConn)
-
+func Start(enc api.Encoder, dec, decInfo api.Decoder) error {
 	var version string
 	if err := decInfo.Decode(&version); err != nil {
 		return err

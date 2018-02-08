@@ -18,17 +18,17 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 package game
 
 import (
-	"encoding/json"
 	"fmt"
 	"image"
 
+	"github.com/andreas-jonsson/fantasim-pub/api"
 	"github.com/andreas-jonsson/vsdl-go"
 )
 
 type menuOption struct {
 	text    string
 	key     vsdl.Keycode
-	cb      func(*json.Encoder, image.Point) error
+	cb      func(api.Encoder, image.Point) error
 	subMenu *menuPage
 }
 
@@ -84,7 +84,7 @@ func resetMenuWindow() {
 	menuStack = menuStack[:1]
 }
 
-func updateCtrlWindow(keysym vsdl.Keysym) func(*json.Encoder, image.Point) error {
+func updateCtrlWindow(keysym vsdl.Keysym) func(api.Encoder, image.Point) error {
 	currentMenu := menuStack[len(menuStack)-1]
 
 	ln := len(menuStack)
