@@ -62,6 +62,11 @@ var rootMenu = &menuPage{
 						text: "Cut trees",
 						cb:   designateTreeCutting,
 					},
+					{
+						key:  'p',
+						text: "Pile Area",
+						cb:   designatePile,
+					},
 				},
 			},
 		},

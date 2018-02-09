@@ -111,6 +111,9 @@ func startInfoDecode(dec api.Decoder) {
 				close(infoChan)
 				return
 			}
+
+			log.Println(str)
+
 			select {
 			case infoChan <- str:
 			default:

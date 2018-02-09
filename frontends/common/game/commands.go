@@ -64,6 +64,24 @@ func designateTreeCutting(enc api.Encoder, _ image.Point) error {
 	return nil
 }
 
+func designatePile(enc api.Encoder, _ image.Point) error {
+	pickTool = func(enc api.Encoder, p, wp image.Point) error {
+		pickTool = nil
+		areaToolStart = p
+
+		areaTool = func(enc api.Encoder, r image.Rectangle) error {
+			defer resetAllTools()
+
+			// TODO: Implement this.
+
+			glogf("Pile in this area: %v", r)
+			return nil
+		}
+		return nil
+	}
+	return nil
+}
+
 func exploreLocation(enc api.Encoder, _ image.Point) error {
 	pickTool = func(enc api.Encoder, p, wp image.Point) error {
 		defer resetAllTools()
