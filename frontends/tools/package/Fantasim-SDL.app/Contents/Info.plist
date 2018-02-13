@@ -5,11 +5,11 @@
     <key>CFBundleDevelopmentRegion</key>
     <string>English</string>
     <key>CFBundleExecutable</key>
-    <string>start.sh</string>
+    <string>applet</string>
     <key>CFBundleGetInfoString</key>
     <string>0.0.1, Copyright © 2017-2018 Andreas T Jonsson</string>
     <key>CFBundleIconFile</key>
-    <string>icon.icns</string>
+    <string>applet.icns</string>
     <key>CFBundleIdentifier</key>
     <string>net.fantasim.Fantasim-SDL</string>
     <key>CFBundleInfoDictionaryVersion</key>
@@ -27,6 +27,8 @@
     <string>Copyright © 2017-2018 Andreas T Jonsson, GNU General Public License.</string>
     <key>LSMinimumSystemVersion</key>
     <string>10.4</string>
+    <key>LSUIElement</key>
+    <true/>
     <key>CFBundleURLTypes</key>
     <array>
         <dict>

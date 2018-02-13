@@ -18,7 +18,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 package api
 
 import (
-	"encoding/json"
 	"fmt"
 	"reflect"
 )
@@ -148,7 +147,7 @@ type CutTreeData struct {
 }
 
 type CutTreesRequest struct {
-	Trees CutTreeData `json:"trees"`
+	Trees []CutTreeData `json:"trees"`
 }
 
 type CutTreesResponse Empty
@@ -196,7 +195,17 @@ func init() {
 	registerType(responseTypeRegistry, CutTreesResponse{})
 }
 
-func decode(dec *json.Decoder, m map[string]reflect.Type, op string) (interface{}, int, error) {
+type (
+	Encoder interface {
+		Encode(interface{}) error
+	}
+
+	Decoder interface {
+		Decode(interface{}) error
+	}
+)
+
+func decode(dec Decoder, m map[string]reflect.Type, op string) (interface{}, int, error) {
 	var header Header
 	if err := dec.Decode(&header); err != nil {
 		return nil, 0, err
@@ -211,18 +220,18 @@ func decode(dec *json.Decoder, m map[string]reflect.Type, op string) (interface{
 	}
 
 	obj := reflect.New(t).Interface()
-	return obj, header.Id, dec.Decode(&obj)
+	return obj, header.Id, dec.Decode(obj)
 }
 
-func DecodeRequest(dec *json.Decoder) (interface{}, int, error) {
+func DecodeRequest(dec Decoder) (interface{}, int, error) {
 	return decode(dec, requestTypeRegistry, "request")
 }
 
-func DecodeResponse(dec *json.Decoder) (interface{}, int, error) {
+func DecodeResponse(dec Decoder) (interface{}, int, error) {
 	return decode(dec, responseTypeRegistry, "response")
 }
 
-func encode(enc *json.Encoder, m map[string]reflect.Type, op string, obj interface{}, id int) error {
+func encode(enc Encoder, m map[string]reflect.Type, op string, obj interface{}, id int) error {
 	name, _ := getTypeName(obj)
 	if _, ok := m[name]; !ok {
 		return fmt.Errorf("object is not a %s: %s", op, name)
@@ -239,10 +248,10 @@ func encode(enc *json.Encoder, m map[string]reflect.Type, op string, obj interfa
 	return nil
 }
 
-func EncodeRequest(enc *json.Encoder, obj interface{}, id int) error {
+func EncodeRequest(enc Encoder, obj interface{}, id int) error {
 	return encode(enc, requestTypeRegistry, "request", obj, id)
 }
 
-func EncodeResponse(enc *json.Encoder, obj interface{}, id int) error {
+func EncodeResponse(enc Encoder, obj interface{}, id int) error {
 	return encode(enc, responseTypeRegistry, "response", obj, id)
 }

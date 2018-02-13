@@ -24,7 +24,6 @@ import (
 	"image/color"
 	"image/draw"
 	"image/png"
-	"io"
 	"log"
 	"strings"
 	"sync/atomic"
@@ -311,11 +310,7 @@ func glogf(f string, s ...interface{}) {
 	glog(fmt.Sprintf(f, s...))
 }
 
-func Start(apiConn io.ReadWriter, infoConn io.Reader) error {
-	enc := json.NewEncoder(apiConn)
-	dec := json.NewDecoder(apiConn)
-	decInfo := json.NewDecoder(infoConn)
-
+func Start(enc api.Encoder, dec, decInfo api.Decoder) error {
 	var version string
 	if err := decInfo.Decode(&version); err != nil {
 		return err
@@ -601,11 +596,19 @@ func Start(apiConn io.ReadWriter, infoConn io.Reader) error {
 
 			if areaTool != nil {
 				r := image.Rect(areaToolStart.X, areaToolStart.Y, mousePos.X/8, mousePos.Y/16)
-				s := strings.Repeat("+", r.Size().X+1)
+				top := "+"
+				szX := r.Size().X
 
-				for y := r.Min.Y; y < r.Max.Y+1; y++ {
-					print(r.Min.X, y, s)
+				if szX > 0 {
+					top = "+" + strings.Repeat("-", szX-1) + "+"
 				}
+				print(r.Min.X, r.Min.Y, top)
+
+				for y := r.Min.Y + 1; y < r.Max.Y; y++ {
+					print(r.Min.X, y, "|")
+					print(r.Max.X, y, "|")
+				}
+				print(r.Min.X, r.Max.Y, top)
 			}
 
 			sz := image.Pt(sz.X/8, sz.Y/16)
