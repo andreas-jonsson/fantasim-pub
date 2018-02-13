@@ -142,6 +142,17 @@ type UnitStatsResponse struct {
 	Debug  []string `json:"debug"`
 }
 
+type CutTreeData struct {
+	X int `json:"x"`
+	Y int `json:"y"`
+}
+
+type CutTreesRequest struct {
+	Trees CutTreeData `json:"trees"`
+}
+
+type CutTreesResponse Empty
+
 var (
 	requestTypeRegistry  = make(map[string]reflect.Type)
 	responseTypeRegistry = make(map[string]reflect.Type)
@@ -171,6 +182,7 @@ func init() {
 	registerType(requestTypeRegistry, JobQueueRequest{})
 	registerType(requestTypeRegistry, ViewHomeRequest{})
 	registerType(requestTypeRegistry, UnitStatsRequest{})
+	registerType(requestTypeRegistry, CutTreesRequest{})
 
 	registerType(responseTypeRegistry, Empty{})
 	registerType(responseTypeRegistry, CreateViewResponse{})
@@ -181,6 +193,7 @@ func init() {
 	registerType(responseTypeRegistry, JobQueueResponse{})
 	registerType(responseTypeRegistry, ViewHomeResponse{})
 	registerType(responseTypeRegistry, UnitStatsResponse{})
+	registerType(responseTypeRegistry, CutTreesResponse{})
 }
 
 func decode(dec *json.Decoder, m map[string]reflect.Type, op string) (interface{}, int, error) {

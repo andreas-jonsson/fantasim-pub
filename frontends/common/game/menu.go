@@ -20,7 +20,6 @@ package game
 import (
 	"encoding/json"
 	"fmt"
-	"image"
 
 	"github.com/andreas-jonsson/vsdl-go"
 )
@@ -28,7 +27,7 @@ import (
 type menuOption struct {
 	text    string
 	key     vsdl.Keycode
-	cb      func(*json.Encoder, image.Point) error
+	cb      func(*json.Encoder) error
 	subMenu *menuPage
 }
 
@@ -84,7 +83,7 @@ func resetMenuWindow() {
 	menuStack = menuStack[:1]
 }
 
-func updateCtrlWindow(keysym vsdl.Keysym) func(*json.Encoder, image.Point) error {
+func updateCtrlWindow(keysym vsdl.Keysym) func(*json.Encoder) error {
 	currentMenu := menuStack[len(menuStack)-1]
 
 	ln := len(menuStack)

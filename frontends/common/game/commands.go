@@ -19,6 +19,7 @@ package game
 
 import (
 	"encoding/json"
+	"fmt"
 	"image"
 
 	"github.com/andreas-jonsson/fantasim-pub/api"
@@ -26,9 +27,9 @@ import (
 
 var (
 	areaToolStart image.Point
-	areaTool      func(*json.Encoder, image.Rectangle) error
+	areaTool      func(*json.Encoder, image.Rectangle, image.Point, image.Point, *api.ReadViewResponse) error
 
-	pickTool func(*json.Encoder, image.Point, image.Point) error
+	pickTool func(*json.Encoder, image.Point, image.Point, image.Point, *api.ReadViewResponse) error
 
 	moveCameraTool func(enc *json.Encoder, viewID int, cameraPos *image.Point) error
 )
@@ -47,15 +48,24 @@ func hasAnyTool() bool {
 	return false
 }
 
-func designateTreeCutting(enc *json.Encoder, _ image.Point) error {
-	pickTool = func(enc *json.Encoder, p, wp image.Point) error {
+func designateTreeCutting(_ *json.Encoder) error {
+	pickTool = func(enc *json.Encoder, p, wp, camPos image.Point, _ *api.ReadViewResponse) error {
 		pickTool = nil
 		areaToolStart = p
 
-		areaTool = func(enc *json.Encoder, r image.Rectangle) error {
+		areaTool = func(enc *json.Encoder, r image.Rectangle, camPos, vp image.Point, resp *api.ReadViewResponse) error {
 			defer resetAllTools()
+			if resp == nil {
+				return nil
+			}
 
-			// TODO: Implement this.
+			for y := 0; y < vp.Y; y++ {
+				for x := 0; x < vp.X; x++ {
+					if resp.Data[y*vp.X+x].Flags.Is(api.Tree) {
+						fmt.Println("Treee!", camPos.X+x, camPos.Y+y)
+					}
+				}
+			}
 
 			glogf("Cut trees: %v", r)
 			return nil
@@ -65,8 +75,8 @@ func designateTreeCutting(enc *json.Encoder, _ image.Point) error {
 	return nil
 }
 
-func exploreLocation(enc *json.Encoder, _ image.Point) error {
-	pickTool = func(enc *json.Encoder, p, wp image.Point) error {
+func exploreLocation(_ *json.Encoder) error {
+	pickTool = func(enc *json.Encoder, p, wp, camPos image.Point, _ *api.ReadViewResponse) error {
 		defer resetAllTools()
 
 		id, err := encodeRequest(enc, &api.ExploreLocationRequest{wp.X, wp.Y})
@@ -81,7 +91,7 @@ func exploreLocation(enc *json.Encoder, _ image.Point) error {
 	return nil
 }
 
-func cameraToHomeLocation(enc *json.Encoder, _ image.Point) error {
+func cameraToHomeLocation(_ *json.Encoder) error {
 	moveCameraTool = func(enc *json.Encoder, viewID int, cameraPos *image.Point) error {
 		defer resetAllTools()
 
@@ -102,7 +112,7 @@ func cameraToHomeLocation(enc *json.Encoder, _ image.Point) error {
 	return nil
 }
 
-func printJobQueue(enc *json.Encoder, _ image.Point) error {
+func printJobQueue(_ *json.Encoder) error {
 	moveCameraTool = func(enc *json.Encoder, viewID int, cameraPos *image.Point) error {
 		defer resetAllTools()
 

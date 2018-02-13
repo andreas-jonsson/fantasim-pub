@@ -450,7 +450,7 @@ func Start(apiConn io.ReadWriter, infoConn io.Reader) error {
 								resetMenuWindow()
 								ctrlWindow = nil
 
-								if err := cb(enc, image.Pt(mousePos.X/8, mousePos.Y/16)); err != nil {
+								if err := cb(enc); err != nil {
 									return nil
 								}
 
@@ -470,15 +470,17 @@ func Start(apiConn io.ReadWriter, infoConn io.Reader) error {
 						case 1:
 							pX, pY := float64(mousePos.X)/float64(sz.X), float64(mousePos.Y)/float64(sz.Y)
 							mX, mY := float64(viewportSize.X)*pX, float64(viewportSize.Y)*pY
+							mp := image.Pt(mousePos.X/8, mousePos.Y/16)
 							mouseWorldPos := cameraPos.Add(image.Pt(int(mX), int(mY)))
 
 							switch {
 							case pickTool != nil:
-								if err := pickTool(enc, image.Pt(mousePos.X/8, mousePos.Y/16), mouseWorldPos); err != nil {
+								if err := pickTool(enc, mp, mouseWorldPos, cameraPos, rvresp); err != nil {
 									return err
 								}
 							case areaTool != nil:
-								if err := areaTool(enc, image.Rect(areaToolStart.X, areaToolStart.Y, mousePos.X/8, mousePos.Y/16)); err != nil {
+								r := image.Rect(areaToolStart.X, areaToolStart.Y, mousePos.X/8, mousePos.Y/16)
+								if err := areaTool(enc, r, cameraPos, viewportSize, rvresp); err != nil {
 									return err
 								}
 							}
