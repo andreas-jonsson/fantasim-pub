@@ -155,6 +155,7 @@ func Initialize() error {
 
 func update(backBuffer *image.RGBA, cvr *api.CreateViewRequest, rvresp *api.ReadViewResponse, cameraPos, currentCameraPos image.Point) error {
 	tileReg := tilesetRegister["tiles"]
+	asciiReg := tilesetRegister["ascii"]
 
 	treeBgColor := color.RGBA{R: 155, G: 184, B: 93, A: 0xFF}
 	waterColor := color.RGBA{R: 15, G: 119, B: 255, A: 0xFF}
@@ -279,7 +280,8 @@ func update(backBuffer *image.RGBA, cvr *api.CreateViewRequest, rvresp *api.Read
 				log.Fatalln("Could not load tile!")
 			}
 
-			if len(tileData.Units) > 0 {
+			switch {
+			case len(tileData.Units) > 0:
 				unit := tileData.Units[0]
 				fg := color.RGBA{R: 0xFF, A: 0xFF}
 
@@ -291,7 +293,10 @@ func update(backBuffer *image.RGBA, cvr *api.CreateViewRequest, rvresp *api.Read
 				}
 
 				blitImage(backBuffer, dp, tileReg["deamon"], fg, bg)
-			} else {
+			case len(tileData.Items) > 0:
+				fg := color.RGBA{R: 139, G: 69, B: 19, A: 0xFF}
+				blitImage(backBuffer, dp, asciiReg["-"], fg, bg)
+			default:
 				blitImage(backBuffer, dp, tile, fg, bg)
 			}
 		}

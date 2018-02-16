@@ -5,6 +5,12 @@
         "tile_height": 16
     },
 
+    "ascii": {
+        "source": "16x16_sm_ascii.png",
+        "tile_width": 16,
+        "tile_height": 16
+    },
+
     "tiles": {
         "source": "tileset_1bit.png",
         "tile_width": 16,
@@ -21,7 +27,8 @@
             "plant": 6,
             "bush": 37,
             "stone": 36,
-            "deamon": 44
+            "deamon": 44,
+            "barrel": 59
         }
     }
 }

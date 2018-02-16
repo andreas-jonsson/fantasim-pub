@@ -48,6 +48,12 @@ const (
 	Goblin UnitClass = iota
 )
 
+type ItemClass uint8
+
+const (
+	Log ItemClass = iota
+)
+
 func (flags TileFlag) Is(f TileFlag) bool {
 	return flags&f != 0
 }
@@ -99,10 +105,16 @@ type UnitViewData struct {
 	Class      UnitClass  `json:"class"`
 }
 
+type ItemViewData struct {
+	ID    uint64    `json:"item_id"`
+	Class ItemClass `json:"class"`
+}
+
 type ReadViewData struct {
-	Flags  TileFlag `json:"flags"`
-	Height uint8    `json:"height"`
-	Units  []UnitViewData
+	Flags  TileFlag       `json:"flags"`
+	Height uint8          `json:"height"`
+	Units  []UnitViewData `json:"units"`
+	Items  []ItemViewData `json:"items"`
 }
 
 type ReadViewResponse struct {
