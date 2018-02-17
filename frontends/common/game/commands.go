@@ -88,17 +88,35 @@ func designateTreeCutting(enc api.Encoder) error {
 	return nil
 }
 
-func designatePile(enc api.Encoder) error {
+func buildStockpile(enc api.Encoder) error {
 	pickTool = func(enc api.Encoder, p, _, _ image.Point, _ *api.ReadViewResponse) error {
 		pickTool = nil
 		areaToolStart = p
 
-		areaTool = func(enc api.Encoder, r image.Rectangle, _, _ image.Point, _ *api.ReadViewResponse) error {
+		areaTool = func(enc api.Encoder, r image.Rectangle, camPos, _ image.Point, _ *api.ReadViewResponse) error {
 			defer resetAllTools()
 
-			// TODO: Implement this.
+			r = r.Add(camPos)
+			id, err := encodeRequest(enc, &api.BuildRequest{
+				Building: api.StockpileBuilding,
+				Location: api.Rect{Min: api.Point{r.Min.X, r.Min.Y}, Max: api.Point{r.Max.X, r.Max.Y}},
+			})
+			if err != nil {
+				return err
+			}
 
-			glogf("Pile in this area: %v", r)
+			resp, err := decodeResponse(id)
+			if err != nil {
+				return err
+			}
+
+			buildResp := resp.(*api.BuildResponse)
+			if buildResp.Error == "" {
+				glogf("Stockpile is planed for area: %v", r)
+				return nil
+			}
+
+			glogf("Could not build stockpile: %v", buildResp.Error)
 			return nil
 		}
 		return nil

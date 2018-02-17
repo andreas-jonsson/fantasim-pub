@@ -43,7 +43,7 @@ func main() {
 
 	flag.StringVar(&fantasimUrl, "url", "", "fantasim URL startup.")
 	flag.StringVar(&serverAddress, "host", "localhost", "Server address.")
-	flag.StringVar(&playerKey, "key", os.Getenv("fantasim-debug-key"), "The player key assigned by the server.")
+	flag.StringVar(&playerKey, "key", os.Getenv("fantasim_key"), "The player key assigned by the server.")
 	flag.StringVar(&playerName, "name", "Unknown", "The name of the player.")
 	flag.Parse()
 

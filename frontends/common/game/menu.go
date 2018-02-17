@@ -39,12 +39,20 @@ type menuPage struct {
 var rootMenu = &menuPage{
 	title: "Menu",
 	options: []*menuOption{
-		/*
-			{
-				key:  'b',
-				text: "Build",
+		{
+			key:  'b',
+			text: "Build",
+			subMenu: &menuPage{
+				title: "Build",
+				options: []*menuOption{
+					{
+						key:  's',
+						text: "Stockpile",
+						cb:   buildStockpile,
+					},
+				},
 			},
-		*/
+		},
 		{
 			key:  'd',
 			text: "Designate",
@@ -60,11 +68,6 @@ var rootMenu = &menuPage{
 						key:  'c',
 						text: "Cut trees",
 						cb:   designateTreeCutting,
-					},
-					{
-						key:  'p',
-						text: "Pile Area",
-						cb:   designatePile,
 					},
 				},
 			},

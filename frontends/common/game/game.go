@@ -149,6 +149,15 @@ func updateLogWithServerInfo(lines []string) []string {
 	}
 }
 
+func itemClassToString(it api.ItemClass) string {
+	switch it {
+	case api.Log:
+		return "Log"
+	default:
+		return "Unidentified"
+	}
+}
+
 func Initialize() error {
 	return buildTilesets()
 }
@@ -158,6 +167,7 @@ func update(backBuffer *image.RGBA, cvr *api.CreateViewRequest, rvresp *api.Read
 	asciiReg := tilesetRegister["ascii"]
 
 	treeBgColor := color.RGBA{R: 155, G: 184, B: 93, A: 0xFF}
+	brookColor := color.RGBA{R: 45, G: 169, B: 220, A: 0xFF}
 	waterColor := color.RGBA{R: 15, G: 119, B: 255, A: 0xFF}
 	waterBgColor := color.RGBA{R: 15, G: 215, B: 255, A: 0xFF}
 
@@ -229,6 +239,10 @@ func update(backBuffer *image.RGBA, cvr *api.CreateViewRequest, rvresp *api.Read
 				tile = waterTile(wx, wy)
 				fg = waterColor
 				bg = waterBgColor
+			case f.Is(api.Brook):
+				tile = tileReg["none"]
+				fg = brookColor
+				bg = fg
 			case f.Is(api.Snow):
 				tile = tileReg["none"]
 				fg = snowBgColor(wx, wy)
@@ -545,6 +559,14 @@ func Start(enc api.Encoder, dec, decInfo api.Decoder) error {
 									}
 
 									contextMenuText = append(contextMenuText, fmt.Sprintf("Height: %v", t.Height))
+								}
+
+								if len(t.Items) > 0 {
+									s := "Item(s):"
+									for _, it := range t.Items {
+										s += " " + itemClassToString(it.Class)
+									}
+									contextMenuText = append(contextMenuText, s)
 								}
 							}
 						}

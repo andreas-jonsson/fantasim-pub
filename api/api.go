@@ -26,6 +26,7 @@ type TileFlag uint8
 
 const (
 	Water TileFlag = 1 << iota
+	Brook
 	Sand
 	Snow
 	Tree
@@ -33,6 +34,10 @@ const (
 	Plant
 	Stone
 )
+
+func (flags TileFlag) Is(f TileFlag) bool {
+	return flags&f != 0
+}
 
 type Allegiance uint8
 
@@ -54,9 +59,11 @@ const (
 	Log ItemClass = iota
 )
 
-func (flags TileFlag) Is(f TileFlag) bool {
-	return flags&f != 0
-}
+type BuildingType uint8
+
+const (
+	StockpileBuilding BuildingType = iota
+)
 
 type Header struct {
 	Type string `json:"type"`
@@ -67,6 +74,16 @@ type (
 	Empty struct{}
 	Any   map[interface{}]interface{}
 )
+
+type Point struct {
+	X int `json:"x"`
+	Y int `json:"y"`
+}
+
+type Rect struct {
+	Min Point `json:"min"`
+	Max Point `json:"max"`
+}
 
 type CloseRequest Empty
 
@@ -164,6 +181,15 @@ type CutTreesRequest struct {
 
 type CutTreesResponse Empty
 
+type BuildRequest struct {
+	Building BuildingType `json:"building"`
+	Location Rect         `json:"location"`
+}
+
+type BuildResponse struct {
+	Error string `json:"error"`
+}
+
 var (
 	requestTypeRegistry  = make(map[string]reflect.Type)
 	responseTypeRegistry = make(map[string]reflect.Type)
@@ -194,6 +220,7 @@ func init() {
 	registerType(requestTypeRegistry, ViewHomeRequest{})
 	registerType(requestTypeRegistry, UnitStatsRequest{})
 	registerType(requestTypeRegistry, CutTreesRequest{})
+	registerType(requestTypeRegistry, BuildRequest{})
 
 	registerType(responseTypeRegistry, Empty{})
 	registerType(responseTypeRegistry, CreateViewResponse{})
@@ -205,6 +232,7 @@ func init() {
 	registerType(responseTypeRegistry, ViewHomeResponse{})
 	registerType(responseTypeRegistry, UnitStatsResponse{})
 	registerType(responseTypeRegistry, CutTreesResponse{})
+	registerType(responseTypeRegistry, BuildResponse{})
 }
 
 type (
