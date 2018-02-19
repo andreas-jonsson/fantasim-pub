@@ -179,6 +179,30 @@ func unitRaceToString(r api.UnitRace) string {
 	}
 }
 
+func unitTile(u api.UnitViewData) *image.Paletted {
+	tileReg := tilesetRegister["tiles"]
+	asciiReg := tilesetRegister["ascii"]
+
+	switch u.Race {
+	case api.Human:
+		return asciiReg["h"]
+	case api.Dwarf:
+		return asciiReg["d"]
+	case api.Goblin:
+		return asciiReg["g"]
+	case api.Orc:
+		return asciiReg["o"]
+	case api.Troll:
+		return asciiReg["T"]
+	case api.Elven:
+		return asciiReg["e"]
+	case api.Deamon:
+		return tileReg["deamon"]
+	default:
+		return asciiReg["?"]
+	}
+}
+
 func Initialize() error {
 	return buildTilesets()
 }
@@ -327,7 +351,7 @@ func update(backBuffer *image.RGBA, cvr *api.CreateViewRequest, rvresp *api.Read
 					fg = color.RGBA{R: 0xFF, G: 0xFF, A: 0xFF}
 				}
 
-				blitImage(backBuffer, dp, tileReg["deamon"], fg, bg)
+				blitImage(backBuffer, dp, unitTile(unit), fg, bg)
 			case len(tileData.Items) > 0:
 				fg := color.RGBA{R: 139, G: 69, B: 19, A: 0xFF}
 				blitImage(backBuffer, dp, asciiReg["-"], fg, bg)
