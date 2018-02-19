@@ -47,10 +47,22 @@ const (
 	Hostile
 )
 
+type UnitRace uint8
+
+const (
+	Human UnitRace = iota
+	Dwarf
+	Goblin
+	Orc
+	Troll
+	Elven
+	Deamon
+)
+
 type UnitClass uint8
 
 const (
-	Goblin UnitClass = iota
+	UnknownUnitClass UnitClass = iota
 )
 
 type ItemClass uint8
@@ -119,6 +131,7 @@ type ReadViewRequest struct {
 type UnitViewData struct {
 	ID         uint64     `json:"unit_id"`
 	Allegiance Allegiance `json:"allegiance"`
+	Race       UnitRace   `json:"race"`
 	Class      UnitClass  `json:"class"`
 }
 
@@ -165,6 +178,7 @@ type UnitStatsRequest struct {
 }
 
 type UnitStatsResponse struct {
+	Name   string   `json:"name"`
 	Health float32  `json:"health"`
 	Thirst float32  `json:"thirst"`
 	Debug  []string `json:"debug"`

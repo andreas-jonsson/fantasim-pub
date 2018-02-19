@@ -158,6 +158,27 @@ func itemClassToString(it api.ItemClass) string {
 	}
 }
 
+func unitRaceToString(r api.UnitRace) string {
+	switch r {
+	case api.Human:
+		return "Human"
+	case api.Dwarf:
+		return "Dwarf"
+	case api.Goblin:
+		return "Goblin"
+	case api.Orc:
+		return "Orc"
+	case api.Troll:
+		return "Troll"
+	case api.Elven:
+		return "Elven"
+	case api.Deamon:
+		return "Deamon"
+	default:
+		return "Unknown Race"
+	}
+}
+
 func Initialize() error {
 	return buildTilesets()
 }
@@ -526,6 +547,9 @@ func Start(enc api.Encoder, dec, decInfo api.Decoder) error {
 									} else {
 										r := resp.(*api.UnitStatsResponse)
 										contextMenuText = []string{
+											r.Name,
+											"",
+											"Race: " + unitRaceToString(u.Race),
 											fmt.Sprintf("Unit ID: %v", u.ID),
 											fmt.Sprintf("Health:  %v", r.Health),
 											fmt.Sprintf("Thirst:  %v", r.Thirst),
