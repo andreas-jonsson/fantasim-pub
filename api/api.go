@@ -22,6 +22,8 @@ import (
 	"reflect"
 )
 
+const InvalidID uint64 = 0
+
 type TileFlag uint8
 
 const (
@@ -59,6 +61,27 @@ const (
 	Deamon
 )
 
+func (r UnitRace) String() string {
+	switch r {
+	case Human:
+		return "Human"
+	case Dwarf:
+		return "Dwarf"
+	case Goblin:
+		return "Goblin"
+	case Orc:
+		return "Orc"
+	case Troll:
+		return "Troll"
+	case Elven:
+		return "Elven"
+	case Deamon:
+		return "Deamon"
+	default:
+		return "Unknown Race"
+	}
+}
+
 type UnitClass uint8
 
 const (
@@ -70,6 +93,15 @@ type ItemClass uint8
 const (
 	Log ItemClass = iota
 )
+
+func (c ItemClass) String() string {
+	switch c {
+	case Log:
+		return "Log"
+	default:
+		return "Unidentified"
+	}
+}
 
 type BuildingType uint8
 
@@ -141,14 +173,23 @@ type ItemViewData struct {
 }
 
 type ReadViewData struct {
-	Flags  TileFlag       `json:"flags"`
-	Height uint8          `json:"height"`
-	Units  []UnitViewData `json:"units"`
-	Items  []ItemViewData `json:"items"`
+	Flags    TileFlag       `json:"flags"`
+	Height   uint8          `json:"height"`
+	Building uint64         `json:"building"`
+	Units    []UnitViewData `json:"units"`
+	Items    []ItemViewData `json:"items"`
 }
 
 type ReadViewResponse struct {
 	Data []ReadViewData `json:"data"`
+}
+
+type DebugCommandRequest struct {
+	Command string `json:"command"`
+}
+
+type DebugCommandResponse struct {
+	Error string `json:"error"`
 }
 
 type ExploreLocationRequest struct {
@@ -225,6 +266,7 @@ func registerType(m map[string]reflect.Type, v interface{}) {
 
 func init() {
 	registerType(requestTypeRegistry, CloseRequest{})
+	registerType(requestTypeRegistry, DebugCommandRequest{})
 	registerType(requestTypeRegistry, CreateViewRequest{})
 	registerType(requestTypeRegistry, DestroyViewRequest{})
 	registerType(requestTypeRegistry, UpdateViewRequest{})
@@ -237,6 +279,7 @@ func init() {
 	registerType(requestTypeRegistry, BuildRequest{})
 
 	registerType(responseTypeRegistry, Empty{})
+	registerType(responseTypeRegistry, DebugCommandResponse{})
 	registerType(responseTypeRegistry, CreateViewResponse{})
 	registerType(responseTypeRegistry, DestroyViewResponse{})
 	registerType(responseTypeRegistry, UpdateViewResponse{})

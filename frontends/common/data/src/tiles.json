@@ -28,7 +28,8 @@
             "bush": 37,
             "stone": 36,
             "deamon": 44,
-            "barrel": 59
+            "crate": 59,
+            "barrel": 60
         }
     }
 }

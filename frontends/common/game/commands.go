@@ -46,7 +46,7 @@ func hasAnyTool() bool {
 	return false
 }
 
-func designateTreeCutting(enc api.Encoder) error {
+func orderTreeCutting(enc api.Encoder) error {
 	pickTool = func(enc api.Encoder, p, _, _ image.Point, _ *api.ReadViewResponse) error {
 		pickTool = nil
 		areaToolStart = p
@@ -88,7 +88,7 @@ func designateTreeCutting(enc api.Encoder) error {
 	return nil
 }
 
-func buildStockpile(enc api.Encoder) error {
+func designateStockpile(enc api.Encoder) error {
 	pickTool = func(enc api.Encoder, p, _, _ image.Point, _ *api.ReadViewResponse) error {
 		pickTool = nil
 		areaToolStart = p
@@ -96,7 +96,10 @@ func buildStockpile(enc api.Encoder) error {
 		areaTool = func(enc api.Encoder, r image.Rectangle, camPos, _ image.Point, _ *api.ReadViewResponse) error {
 			defer resetAllTools()
 
+			r.Min.X /= 2
+			r.Max.X /= 2
 			r = r.Add(camPos)
+
 			id, err := encodeRequest(enc, &api.BuildRequest{
 				Building: api.StockpileBuilding,
 				Location: api.Rect{Min: api.Point{r.Min.X, r.Min.Y}, Max: api.Point{r.Max.X, r.Max.Y}},
@@ -155,6 +158,46 @@ func cameraToHomeLocation(_ api.Encoder) error {
 			r := resp.(*api.ViewHomeResponse)
 			*cameraPos = image.Pt(r.X, r.Y)
 			glogf("Jump to home location: %d,%d", r.X, r.Y)
+			return nil
+		}
+	}
+	return nil
+}
+
+func debugCommand(enc api.Encoder, cmd string) {
+	moveCameraTool = func(enc api.Encoder, _ int, _ *image.Point) error {
+		defer resetAllTools()
+
+		id, err := encodeRequest(enc, &api.DebugCommandRequest{cmd})
+		if err != nil {
+			return err
+		}
+
+		if resp, err := decodeResponse(id); err != nil {
+			return err
+		} else {
+			s := resp.(*api.DebugCommandResponse).Error
+			if s != "" {
+				glog(s)
+			}
+			return nil
+		}
+	}
+}
+
+func printResources(_ api.Encoder) error {
+	moveCameraTool = func(enc api.Encoder, viewID int, cameraPos *image.Point) error {
+		defer resetAllTools()
+
+		id, err := encodeRequest(enc, &api.DebugCommandRequest{"resources"})
+		if err != nil {
+			return err
+		}
+
+		if resp, err := decodeResponse(id); err != nil {
+			return err
+		} else {
+			glog("Resources:" + resp.(*api.DebugCommandResponse).Error)
 			return nil
 		}
 	}

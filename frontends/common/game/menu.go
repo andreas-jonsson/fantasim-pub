@@ -43,14 +43,8 @@ var rootMenu = &menuPage{
 			key:  'b',
 			text: "Build",
 			subMenu: &menuPage{
-				title: "Build",
-				options: []*menuOption{
-					{
-						key:  's',
-						text: "Stockpile",
-						cb:   buildStockpile,
-					},
-				},
+				title:   "Build",
+				options: []*menuOption{},
 			},
 		},
 		{
@@ -60,6 +54,20 @@ var rootMenu = &menuPage{
 				title: "Designate",
 				options: []*menuOption{
 					{
+						key:  's',
+						text: "Stockpile",
+						cb:   designateStockpile,
+					},
+				},
+			},
+		},
+		{
+			key:  'o',
+			text: "Order",
+			subMenu: &menuPage{
+				title: "Order",
+				options: []*menuOption{
+					{
 						key:  'e',
 						text: "Explore",
 						cb:   exploreLocation,
@@ -67,20 +75,42 @@ var rootMenu = &menuPage{
 					{
 						key:  'c',
 						text: "Cut trees",
-						cb:   designateTreeCutting,
+						cb:   orderTreeCutting,
 					},
 				},
 			},
 		},
 		{
-			key:  'h',
-			text: "Jump to home location",
-			cb:   cameraToHomeLocation,
-		},
-		{
-			key:  'j',
-			text: "Print job queue to log",
-			cb:   printJobQueue,
+			key:  'x',
+			text: "Debug",
+			subMenu: &menuPage{
+				title: "Debug",
+				options: []*menuOption{
+					{
+						key:  'w',
+						text: "Spawn worker",
+						cb: func(enc api.Encoder) error {
+							debugCommand(enc, "spawn_worker")
+							return nil
+						},
+					},
+					{
+						key:  'h',
+						text: "Jump to home location",
+						cb:   cameraToHomeLocation,
+					},
+					{
+						key:  'r',
+						text: "Print resources in log",
+						cb:   printResources,
+					},
+					{
+						key:  'j',
+						text: "Print job queue in log",
+						cb:   printJobQueue,
+					},
+				},
+			},
 		},
 	},
 }

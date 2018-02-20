@@ -149,36 +149,6 @@ func updateLogWithServerInfo(lines []string) []string {
 	}
 }
 
-func itemClassToString(it api.ItemClass) string {
-	switch it {
-	case api.Log:
-		return "Log"
-	default:
-		return "Unidentified"
-	}
-}
-
-func unitRaceToString(r api.UnitRace) string {
-	switch r {
-	case api.Human:
-		return "Human"
-	case api.Dwarf:
-		return "Dwarf"
-	case api.Goblin:
-		return "Goblin"
-	case api.Orc:
-		return "Orc"
-	case api.Troll:
-		return "Troll"
-	case api.Elven:
-		return "Elven"
-	case api.Deamon:
-		return "Deamon"
-	default:
-		return "Unknown Race"
-	}
-}
-
 func unitTile(u api.UnitViewData) *image.Paletted {
 	tileReg := tilesetRegister["tiles"]
 	asciiReg := tilesetRegister["ascii"]
@@ -335,6 +305,12 @@ func update(backBuffer *image.RGBA, cvr *api.CreateViewRequest, rvresp *api.Read
 				fg = color.RGBA{R: 128, G: 128, B: 128, A: 0xFF}
 			}
 
+			if tileData.Building != api.InvalidID {
+				tile = asciiReg["#"]
+				fg = color.RGBA{R: 89, G: 19, B: 9, A: 0xFF}
+				bg = color.RGBA{R: 109, G: 29, A: 0xFF}
+			}
+
 			if tile == nil {
 				log.Fatalln("Could not load tile!")
 			}
@@ -354,7 +330,11 @@ func update(backBuffer *image.RGBA, cvr *api.CreateViewRequest, rvresp *api.Read
 				blitImage(backBuffer, dp, unitTile(unit), fg, bg)
 			case len(tileData.Items) > 0:
 				fg := color.RGBA{R: 139, G: 69, B: 19, A: 0xFF}
-				blitImage(backBuffer, dp, asciiReg["-"], fg, bg)
+				tile := asciiReg["-"]
+				if len(tileData.Items) > 1 {
+					tile = tileReg["crate"]
+				}
+				blitImage(backBuffer, dp, tile, fg, bg)
 			default:
 				blitImage(backBuffer, dp, tile, fg, bg)
 			}
@@ -573,7 +553,7 @@ func Start(enc api.Encoder, dec, decInfo api.Decoder) error {
 										contextMenuText = []string{
 											r.Name,
 											"",
-											"Race: " + unitRaceToString(u.Race),
+											"Race: " + u.Race.String(),
 											fmt.Sprintf("Unit ID: %v", u.ID),
 											fmt.Sprintf("Health:  %v", r.Health),
 											fmt.Sprintf("Thirst:  %v", r.Thirst),
@@ -612,7 +592,7 @@ func Start(enc api.Encoder, dec, decInfo api.Decoder) error {
 								if len(t.Items) > 0 {
 									s := "Item(s):"
 									for _, it := range t.Items {
-										s += " " + itemClassToString(it.Class)
+										s += " " + it.Class.String()
 									}
 									contextMenuText = append(contextMenuText, s)
 								}
