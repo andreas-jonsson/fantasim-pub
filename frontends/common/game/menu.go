@@ -84,7 +84,7 @@ var rootMenu = &menuPage{
 						cb:   exploreLocation,
 					},
 					{
-						key:  'c',
+						key:  't',
 						text: "Cut trees",
 						cb:   orderTreeCutting,
 					},
@@ -92,6 +92,11 @@ var rootMenu = &menuPage{
 						key:  'm',
 						text: "Mine",
 						cb:   mineLocation,
+					},
+					{
+						key:  'c',
+						text: "Collect items",
+						cb:   collectItems,
 					},
 				},
 			},

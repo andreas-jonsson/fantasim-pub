@@ -261,6 +261,12 @@ type CutTreesRequest struct {
 
 type CutTreesResponse Empty
 
+type CollectItemsRequest struct {
+	Items []Point `json:"items"`
+}
+
+type CollectItemsResponse Empty
+
 type BuildRequest struct {
 	Building BuildingType `json:"building"`
 	Location Rect         `json:"location"`
@@ -302,6 +308,7 @@ func init() {
 	registerType(requestTypeRegistry, ViewHomeRequest{})
 	registerType(requestTypeRegistry, UnitStatsRequest{})
 	registerType(requestTypeRegistry, CutTreesRequest{})
+	registerType(requestTypeRegistry, CollectItemsRequest{})
 	registerType(requestTypeRegistry, BuildRequest{})
 
 	registerType(responseTypeRegistry, Empty{})
@@ -316,6 +323,7 @@ func init() {
 	registerType(responseTypeRegistry, ViewHomeResponse{})
 	registerType(responseTypeRegistry, UnitStatsResponse{})
 	registerType(responseTypeRegistry, CutTreesResponse{})
+	registerType(responseTypeRegistry, CollectItemsResponse{})
 	registerType(responseTypeRegistry, BuildResponse{})
 }
 

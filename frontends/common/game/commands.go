@@ -87,6 +87,47 @@ func orderTreeCutting(enc api.Encoder) error {
 	return nil
 }
 
+func collectItems(enc api.Encoder) error {
+	pickTool = func(enc api.Encoder, p, _, _ image.Point, _ *api.ReadViewResponse) error {
+		pickTool = nil
+		areaToolStart = p
+
+		areaTool = func(enc api.Encoder, r image.Rectangle, camPos, vp image.Point, resp *api.ReadViewResponse) error {
+			defer resetAllTools()
+			if resp == nil {
+				return nil
+			}
+
+			r.Min.X /= 2
+			r.Max.X /= 2
+
+			var items []api.Point
+			for y := r.Min.Y; y <= r.Max.Y; y++ {
+				for x := r.Min.X; x <= r.Max.X; x++ {
+					if len(resp.Data[y*vp.X+x].Items) > 0 {
+						items = append(items, api.Point{camPos.X + x, camPos.Y + y})
+					}
+				}
+			}
+
+			if len(items) == 0 {
+				return nil
+			}
+
+			id, err := encodeRequest(enc, &api.CollectItemsRequest{items})
+			if err != nil {
+				return err
+			}
+			discardResponse(id)
+
+			glogf("Collect %d items(s) in area: %v", len(items), r)
+			return nil
+		}
+		return nil
+	}
+	return nil
+}
+
 func designateBuilding(enc api.Encoder, b api.BuildingType) error {
 	pickTool = func(enc api.Encoder, p, _, _ image.Point, _ *api.ReadViewResponse) error {
 		pickTool = nil
