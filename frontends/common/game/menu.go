@@ -122,13 +122,18 @@ var rootMenu = &menuPage{
 					},
 					{
 						key:  'r',
-						text: "Print resources in log",
-						cb:   printResources,
+						text: "List resources",
+						cb:   listResources,
 					},
 					{
 						key:  'j',
-						text: "Print job queue in log",
+						text: "Print job queue",
 						cb:   printJobQueue,
+					},
+					{
+						key:  'p',
+						text: "List players",
+						cb:   listPlayers,
 					},
 				},
 			},

@@ -251,7 +251,7 @@ func debugCommand(enc api.Encoder, cmd string) {
 	}
 }
 
-func printResources(_ api.Encoder) error {
+func listResources(_ api.Encoder) error {
 	moveCameraTool = func(enc api.Encoder, viewID int, cameraPos *image.Point) error {
 		defer resetAllTools()
 
@@ -263,7 +263,26 @@ func printResources(_ api.Encoder) error {
 		if resp, err := decodeResponse(id); err != nil {
 			return err
 		} else {
-			glog("Resources:" + resp.(*api.DebugCommandResponse).Error)
+			glog("Resources:", resp.(*api.DebugCommandResponse).Error)
+			return nil
+		}
+	}
+	return nil
+}
+
+func listPlayers(_ api.Encoder) error {
+	moveCameraTool = func(enc api.Encoder, viewID int, cameraPos *image.Point) error {
+		defer resetAllTools()
+
+		id, err := encodeRequest(enc, &api.DebugCommandRequest{"players"})
+		if err != nil {
+			return err
+		}
+
+		if resp, err := decodeResponse(id); err != nil {
+			return err
+		} else {
+			glog("Players:", resp.(*api.DebugCommandResponse).Error)
 			return nil
 		}
 	}
