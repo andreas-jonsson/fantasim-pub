@@ -27,6 +27,7 @@
             "plant": 6,
             "bush": 37,
             "stone": 36,
+            "floor": 43,
             "deamon": 44,
             "crate": 59,
             "barrel": 60

@@ -182,6 +182,7 @@ func update(backBuffer *image.RGBA, cvr *api.CreateViewRequest, rvresp *api.Read
 	asciiReg := tilesetRegister["ascii"]
 
 	treeBgColor := color.RGBA{R: 155, G: 184, B: 93, A: 0xFF}
+	stoneColor := color.RGBA{R: 128, G: 128, B: 128, A: 0xFF}
 	brookColor := color.RGBA{R: 45, G: 169, B: 220, A: 0xFF}
 	waterColor := color.RGBA{R: 15, G: 119, B: 255, A: 0xFF}
 	waterBgColor := color.RGBA{R: 15, G: 215, B: 255, A: 0xFF}
@@ -302,18 +303,11 @@ func update(backBuffer *image.RGBA, cvr *api.CreateViewRequest, rvresp *api.Read
 				fg = treeColor(wx, wy)
 			case f.Is(api.Stone):
 				tile = tileReg["stone"]
-				fg = color.RGBA{R: 128, G: 128, B: 128, A: 0xFF}
+				fg = stoneColor
 			}
 
 			if tileData.Building != api.InvalidID {
-				switch tileData.BuildingType {
-				case api.StockpileBuilding:
-					tile = asciiReg["#"]
-				case api.SawmillBuilding:
-					tile = asciiReg["/"]
-				default:
-					tile = asciiReg["#"]
-				}
+				tile = tileReg["floor"]
 				fg = color.RGBA{R: 89, G: 19, B: 9, A: 0xFF}
 				bg = color.RGBA{R: 109, G: 29, A: 0xFF}
 			}
@@ -337,9 +331,21 @@ func update(backBuffer *image.RGBA, cvr *api.CreateViewRequest, rvresp *api.Read
 				blitImage(backBuffer, dp, unitTile(unit), fg, bg)
 			case len(tileData.Items) > 0:
 				fg := color.RGBA{R: 139, G: 69, B: 19, A: 0xFF}
-				tile := asciiReg["-"]
+				tile := asciiReg["?"]
+
 				if len(tileData.Items) > 1 {
+					fg = color.RGBA{R: 189, G: 129, B: 60, A: 0xFF}
 					tile = tileReg["crate"]
+				} else {
+					switch tileData.Items[0].Class {
+					case api.LogItem:
+						tile = asciiReg["-"]
+					case api.FirewoodItem:
+						tile = asciiReg["\""]
+					case api.StoneItem:
+						fg = stoneColor
+						tile = tileReg["stone"]
+					}
 				}
 				blitImage(backBuffer, dp, tile, fg, bg)
 			default:
@@ -606,9 +612,9 @@ func Start(enc api.Encoder, dec, decInfo api.Decoder) error {
 										contextMenuText = append(contextMenuText, "Object: Tree")
 									case t.Flags.Is(api.Bush):
 										contextMenuText = append(contextMenuText, "Object: Bush")
-									case t.Flags.Is(api.Bush):
+									case t.Flags.Is(api.Plant):
 										contextMenuText = append(contextMenuText, "Object: Plant")
-									case t.Flags.Is(api.Bush):
+									case t.Flags.Is(api.Stone):
 										contextMenuText = append(contextMenuText, "Object: Stone")
 									}
 

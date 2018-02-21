@@ -88,6 +88,11 @@ var rootMenu = &menuPage{
 						text: "Cut trees",
 						cb:   orderTreeCutting,
 					},
+					{
+						key:  'm',
+						text: "Mine",
+						cb:   mineLocation,
+					},
 				},
 			},
 		},

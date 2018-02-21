@@ -60,12 +60,11 @@ func orderTreeCutting(enc api.Encoder) error {
 			r.Min.X /= 2
 			r.Max.X /= 2
 
-			var trees []api.CutTreeData
-
+			var trees []api.Point
 			for y := r.Min.Y; y <= r.Max.Y; y++ {
 				for x := r.Min.X; x <= r.Max.X; x++ {
 					if resp.Data[y*vp.X+x].Flags.Is(api.Tree) {
-						trees = append(trees, api.CutTreeData{camPos.X + x, camPos.Y + y})
+						trees = append(trees, api.Point{camPos.X + x, camPos.Y + y})
 					}
 				}
 			}
@@ -122,6 +121,32 @@ func designateBuilding(enc api.Encoder, b api.BuildingType) error {
 			glogf("Could not build %s: %v", b, buildResp.Error)
 			return nil
 		}
+		return nil
+	}
+	return nil
+}
+
+func mineLocation(enc api.Encoder) error {
+	pickTool = func(enc api.Encoder, p, wp, _ image.Point, _ *api.ReadViewResponse) error {
+		defer resetAllTools()
+
+		id, err := encodeRequest(enc, &api.MineLocationRequest{api.Point{wp.X, wp.Y}})
+		if err != nil {
+			return err
+		}
+
+		resp, err := decodeResponse(id)
+		if err != nil {
+			return err
+		}
+
+		mineResp := resp.(*api.MineLocationResponse)
+		if mineResp.Error == "" {
+			glog("Mining location:", wp)
+			return nil
+		}
+
+		glog("Could not mine location:", mineResp.Error)
 		return nil
 	}
 	return nil

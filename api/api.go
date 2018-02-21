@@ -91,19 +91,22 @@ const (
 type ItemClass uint8
 
 const (
-	Log ItemClass = iota
-	Firewood
-	Plank
+	LogItem ItemClass = iota
+	FirewoodItem
+	PlankItem
+	StoneItem
 )
 
 func (c ItemClass) String() string {
 	switch c {
-	case Log:
+	case LogItem:
 		return "Log"
-	case Firewood:
+	case FirewoodItem:
 		return "Firewood"
-	case Plank:
+	case PlankItem:
 		return "Plank"
+	case StoneItem:
+		return "Stone"
 	default:
 		panic("invalid building type")
 	}
@@ -218,6 +221,14 @@ type ExploreLocationRequest struct {
 
 type ExploreLocationResponse Empty
 
+type MineLocationRequest struct {
+	Location Point `json:"location"`
+}
+
+type MineLocationResponse struct {
+	Error string `json:"error"`
+}
+
 type JobQueueRequest Empty
 
 type JobQueueResponse struct {
@@ -244,13 +255,8 @@ type UnitStatsResponse struct {
 	Debug  []string `json:"debug"`
 }
 
-type CutTreeData struct {
-	X int `json:"x"`
-	Y int `json:"y"`
-}
-
 type CutTreesRequest struct {
-	Trees []CutTreeData `json:"trees"`
+	Trees []Point `json:"trees"`
 }
 
 type CutTreesResponse Empty
@@ -291,6 +297,7 @@ func init() {
 	registerType(requestTypeRegistry, UpdateViewRequest{})
 	registerType(requestTypeRegistry, ReadViewRequest{})
 	registerType(requestTypeRegistry, ExploreLocationRequest{})
+	registerType(requestTypeRegistry, MineLocationRequest{})
 	registerType(requestTypeRegistry, JobQueueRequest{})
 	registerType(requestTypeRegistry, ViewHomeRequest{})
 	registerType(requestTypeRegistry, UnitStatsRequest{})
@@ -304,6 +311,7 @@ func init() {
 	registerType(responseTypeRegistry, UpdateViewResponse{})
 	registerType(responseTypeRegistry, ReadViewResponse{})
 	registerType(responseTypeRegistry, ExploreLocationResponse{})
+	registerType(responseTypeRegistry, MineLocationResponse{})
 	registerType(responseTypeRegistry, JobQueueResponse{})
 	registerType(responseTypeRegistry, ViewHomeResponse{})
 	registerType(responseTypeRegistry, UnitStatsResponse{})
