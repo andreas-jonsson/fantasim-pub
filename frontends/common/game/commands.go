@@ -88,7 +88,7 @@ func orderTreeCutting(enc api.Encoder) error {
 	return nil
 }
 
-func designateStockpile(enc api.Encoder) error {
+func designateBuilding(enc api.Encoder, b api.BuildingType) error {
 	pickTool = func(enc api.Encoder, p, _, _ image.Point, _ *api.ReadViewResponse) error {
 		pickTool = nil
 		areaToolStart = p
@@ -101,7 +101,7 @@ func designateStockpile(enc api.Encoder) error {
 			r = r.Add(camPos)
 
 			id, err := encodeRequest(enc, &api.BuildRequest{
-				Building: api.StockpileBuilding,
+				Building: b,
 				Location: api.Rect{Min: api.Point{r.Min.X, r.Min.Y}, Max: api.Point{r.Max.X, r.Max.Y}},
 			})
 			if err != nil {
@@ -115,11 +115,11 @@ func designateStockpile(enc api.Encoder) error {
 
 			buildResp := resp.(*api.BuildResponse)
 			if buildResp.Error == "" {
-				glogf("Stockpile is planed for area: %v", r)
+				glogf("%s is planed for area: %v", b, r)
 				return nil
 			}
 
-			glogf("Could not build stockpile: %v", buildResp.Error)
+			glogf("Could not build %s: %v", b, buildResp.Error)
 			return nil
 		}
 		return nil

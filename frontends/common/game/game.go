@@ -306,7 +306,14 @@ func update(backBuffer *image.RGBA, cvr *api.CreateViewRequest, rvresp *api.Read
 			}
 
 			if tileData.Building != api.InvalidID {
-				tile = asciiReg["#"]
+				switch tileData.BuildingType {
+				case api.StockpileBuilding:
+					tile = asciiReg["#"]
+				case api.SawmillBuilding:
+					tile = asciiReg["/"]
+				default:
+					tile = asciiReg["#"]
+				}
 				fg = color.RGBA{R: 89, G: 19, B: 9, A: 0xFF}
 				bg = color.RGBA{R: 109, G: 29, A: 0xFF}
 			}
@@ -450,6 +457,12 @@ func Start(enc api.Encoder, dec, decInfo api.Decoder) error {
 						} else {
 							return nil
 						}
+					case t.Keysym.Sym == 0x40000044: // F11
+						if b, err := vsdl.ToggleFullscreen(); err != nil {
+							fmt.Println("Could not toggle fullscreen:", err)
+						} else {
+							fmt.Println("Toggle fullscreen:", b)
+						}
 					case t.Keysym.Sym == vsdl.Keycode('a') && t.Keysym.IsMod(vsdl.CtrlMod):
 						cameraPos.X -= viewportSize.X
 					case t.Keysym.Sym == vsdl.Keycode('d') && t.Keysym.IsMod(vsdl.CtrlMod):
@@ -502,7 +515,16 @@ func Start(enc api.Encoder, dec, decInfo api.Decoder) error {
 						}
 					}
 				case *vsdl.MouseMotionEvent:
-					mousePos = image.Pt(int(t.X), int(t.Y))
+					if t.X >= int32(sz.X) {
+						mousePos.X = sz.X - 1
+					} else {
+						mousePos.X = int(t.X)
+					}
+					if t.Y >= int32(sz.Y) {
+						mousePos.Y = sz.Y - 1
+					} else {
+						mousePos.Y = int(t.Y)
+					}
 				case *vsdl.MouseButtonEvent:
 					if t.State == 1 {
 						switch t.Button {
@@ -564,6 +586,10 @@ func Start(enc api.Encoder, dec, decInfo api.Decoder) error {
 										}
 									}
 								} else {
+									if t.Building != api.InvalidID {
+										contextMenuText = append(contextMenuText, "Building: "+t.BuildingType.String())
+									}
+
 									switch {
 									case t.Flags.Is(api.Water):
 										contextMenuText = append(contextMenuText, "Tile: Water")

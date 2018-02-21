@@ -54,9 +54,20 @@ var rootMenu = &menuPage{
 				title: "Designate",
 				options: []*menuOption{
 					{
-						key:  's',
+						key:  'p',
 						text: "Stockpile",
-						cb:   designateStockpile,
+						cb: func(enc api.Encoder) error {
+							designateBuilding(enc, api.StockpileBuilding)
+							return nil
+						},
+					},
+					{
+						key:  's',
+						text: "Sawmill",
+						cb: func(enc api.Encoder) error {
+							designateBuilding(enc, api.SawmillBuilding)
+							return nil
+						},
 					},
 				},
 			},

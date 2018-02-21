@@ -92,14 +92,20 @@ type ItemClass uint8
 
 const (
 	Log ItemClass = iota
+	Firewood
+	Plank
 )
 
 func (c ItemClass) String() string {
 	switch c {
 	case Log:
 		return "Log"
+	case Firewood:
+		return "Firewood"
+	case Plank:
+		return "Plank"
 	default:
-		return "Unidentified"
+		panic("invalid building type")
 	}
 }
 
@@ -107,7 +113,19 @@ type BuildingType uint8
 
 const (
 	StockpileBuilding BuildingType = iota
+	SawmillBuilding
 )
+
+func (b BuildingType) String() string {
+	switch b {
+	case StockpileBuilding:
+		return "Stockpile"
+	case SawmillBuilding:
+		return "Sawmill"
+	default:
+		panic("invalid building type")
+	}
+}
 
 type Header struct {
 	Type string `json:"type"`
@@ -173,11 +191,12 @@ type ItemViewData struct {
 }
 
 type ReadViewData struct {
-	Flags    TileFlag       `json:"flags"`
-	Height   uint8          `json:"height"`
-	Building uint64         `json:"building"`
-	Units    []UnitViewData `json:"units"`
-	Items    []ItemViewData `json:"items"`
+	Flags        TileFlag       `json:"flags"`
+	Height       uint8          `json:"height"`
+	Building     uint64         `json:"building"`
+	BuildingType BuildingType   `json:"building_type"`
+	Units        []UnitViewData `json:"units"`
+	Items        []ItemViewData `json:"items"`
 }
 
 type ReadViewResponse struct {
