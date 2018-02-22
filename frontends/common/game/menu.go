@@ -135,6 +135,22 @@ var rootMenu = &menuPage{
 						text: "List players",
 						cb:   listPlayers,
 					},
+					{
+						key:  'f',
+						text: "Produce firewood",
+						cb: func(enc api.Encoder) error {
+							debugCommand(enc, "firewood")
+							return nil
+						},
+					},
+					{
+						key:  'k',
+						text: "Produce plank",
+						cb: func(enc api.Encoder) error {
+							debugCommand(enc, "plank")
+							return nil
+						},
+					},
 				},
 			},
 		},

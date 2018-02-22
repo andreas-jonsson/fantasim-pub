@@ -342,6 +342,8 @@ func update(backBuffer *image.RGBA, cvr *api.CreateViewRequest, rvresp *api.Read
 						tile = asciiReg["-"]
 					case api.FirewoodItem:
 						tile = asciiReg["\""]
+					case api.PlankItem:
+						tile = asciiReg["="]
 					case api.StoneItem:
 						fg = stoneColor
 						tile = tileReg["stone"]
