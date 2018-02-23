@@ -338,6 +338,9 @@ func update(backBuffer *image.RGBA, cvr *api.CreateViewRequest, rvresp *api.Read
 					tile = tileReg["crate"]
 				} else {
 					switch tileData.Items[0].Class {
+					case api.PartialItem:
+						tile = asciiReg["&"]
+						fg = color.RGBA{R: 129, G: 129, B: 220, A: 0xFF}
 					case api.LogItem:
 						tile = asciiReg["-"]
 					case api.FirewoodItem:

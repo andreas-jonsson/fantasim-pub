@@ -91,7 +91,8 @@ const (
 type ItemClass uint8
 
 const (
-	LogItem ItemClass = iota
+	PartialItem ItemClass = iota
+	LogItem
 	FirewoodItem
 	PlankItem
 	StoneItem
@@ -99,6 +100,8 @@ const (
 
 func (c ItemClass) String() string {
 	switch c {
+	case PartialItem:
+		return "Partial"
 	case LogItem:
 		return "Log"
 	case FirewoodItem:
