@@ -70,6 +70,7 @@ func orderTreeCutting(enc api.Encoder) error {
 			}
 
 			if len(trees) == 0 {
+				alert()
 				return nil
 			}
 
@@ -111,6 +112,7 @@ func collectItems(enc api.Encoder) error {
 			}
 
 			if len(items) == 0 {
+				alert()
 				return nil
 			}
 
@@ -140,6 +142,12 @@ func designateBuilding(enc api.Encoder, b api.BuildingType) error {
 			r.Max.X /= 2
 			r = r.Add(camPos)
 
+			sz := r.Size()
+			if sz.X < 3 || sz.Y < 3 || sz.X > 30 || sz.Y > 30 {
+				alert()
+				return nil
+			}
+
 			id, err := encodeRequest(enc, &api.BuildRequest{
 				Building: b,
 				Location: api.Rect{Min: api.Point{r.Min.X, r.Min.Y}, Max: api.Point{r.Max.X, r.Max.Y}},
@@ -159,6 +167,7 @@ func designateBuilding(enc api.Encoder, b api.BuildingType) error {
 				return nil
 			}
 
+			alert()
 			glogf("Could not build %s: %v", b, buildResp.Error)
 			return nil
 		}
@@ -187,6 +196,7 @@ func mineLocation(enc api.Encoder) error {
 			return nil
 		}
 
+		alert()
 		glog("Could not mine location:", mineResp.Error)
 		return nil
 	}

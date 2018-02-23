@@ -19,14 +19,12 @@ package game
 
 import (
 	"image"
-	"image/color"
 )
 
 type window struct {
 	title        string
 	putch        func(int, int, string)
 	tileset      map[string]*image.Paletted
-	fg, bg       color.RGBA
 	rect, canvas image.Rectangle
 }
 
@@ -36,8 +34,6 @@ func newWindow(title string, rect image.Rectangle, tileset map[string]*image.Pal
 		title,
 		putch,
 		tileset,
-		color.RGBA{R: 0xFF, G: 0xFF, B: 0xFF, A: 0xFF},
-		color.RGBA{A: 0xFF},
 		rect,
 		image.Rectangle{Min: rect.Add(one).Min, Max: rect.Sub(one).Max},
 	}

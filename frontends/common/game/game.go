@@ -372,6 +372,20 @@ func glogf(f string, s ...interface{}) {
 	glog(fmt.Sprintf(f, s...))
 }
 
+func alert() {
+	textBgColor = color.RGBA{R: 0xFF, A: 0xFF}
+	go func() {
+		fmt.Print("\a")
+	}()
+}
+
+var (
+	defaultTextFgColor = color.RGBA{R: 0xFF, G: 0xFF, B: 0xFF, A: 0xFF}
+	textFgColor        = defaultTextFgColor
+	defaultTextBgColor = color.RGBA{A: 0xFF}
+	textBgColor        = defaultTextBgColor
+)
+
 func Start(enc api.Encoder, dec, decInfo api.Decoder) error {
 	var version string
 	if err := decInfo.Decode(&version); err != nil {
@@ -427,7 +441,7 @@ func Start(enc api.Encoder, dec, decInfo api.Decoder) error {
 		}
 
 		putch := func(x, y int, ch string) {
-			blitImage(backBuffer, image.Pt(x*8, y*16), tilesetRegister["default"][ch], color.RGBA{R: 0xFF, G: 0xFF, B: 0xFF, A: 0xFF}, color.RGBA{A: 0xFF})
+			blitImage(backBuffer, image.Pt(x*8, y*16), tilesetRegister["default"][ch], textFgColor, textBgColor)
 		}
 
 		print := func(x, y int, text string) {
@@ -766,6 +780,9 @@ func Start(enc api.Encoder, dec, decInfo api.Decoder) error {
 			}
 
 			vsdl.Present(backBuffer)
+
+			textFgColor = defaultTextFgColor
+			textBgColor = defaultTextBgColor
 		}
 
 		return nil

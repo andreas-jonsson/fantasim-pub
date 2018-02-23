@@ -102,6 +102,31 @@ var rootMenu = &menuPage{
 			},
 		},
 		{
+			key:  'p',
+			text: "Production",
+			subMenu: &menuPage{
+				title: "Production",
+				options: []*menuOption{
+					{
+						key:  'f',
+						text: "Firewood",
+						cb: func(enc api.Encoder) error {
+							debugCommand(enc, "firewood")
+							return nil
+						},
+					},
+					{
+						key:  'p',
+						text: "Plank",
+						cb: func(enc api.Encoder) error {
+							debugCommand(enc, "plank")
+							return nil
+						},
+					},
+				},
+			},
+		},
+		{
 			key:  'x',
 			text: "Debug",
 			subMenu: &menuPage{
@@ -134,22 +159,6 @@ var rootMenu = &menuPage{
 						key:  'p',
 						text: "List players",
 						cb:   listPlayers,
-					},
-					{
-						key:  'f',
-						text: "Produce firewood",
-						cb: func(enc api.Encoder) error {
-							debugCommand(enc, "firewood")
-							return nil
-						},
-					},
-					{
-						key:  'k',
-						text: "Produce plank",
-						cb: func(enc api.Encoder) error {
-							debugCommand(enc, "plank")
-							return nil
-						},
 					},
 				},
 			},
@@ -189,7 +198,11 @@ func updateCtrlWindowText(text []string) ([]string, string) {
 	currentMenu := menuStack[len(menuStack)-1]
 
 	for _, o := range currentMenu.options {
-		text = append(text, fmt.Sprintf(" %s: %s", string(o.key), o.text))
+		lable := o.text
+		if o.subMenu != nil {
+			lable += ">"
+		}
+		text = append(text, fmt.Sprintf(" %s: %s", string(o.key), lable))
 		text = append(text, "")
 	}
 
