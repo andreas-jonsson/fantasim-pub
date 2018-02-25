@@ -168,6 +168,14 @@ func unitTile(u api.UnitViewData) *image.Paletted {
 		return asciiReg["e"]
 	case api.Deamon:
 		return tileReg["deamon"]
+
+	// Wildlife
+	case api.Dear:
+		return asciiReg["d"]
+	case api.Boar:
+		return asciiReg["b"]
+	case api.Wolf:
+		return asciiReg["w"]
 	default:
 		return asciiReg["?"]
 	}

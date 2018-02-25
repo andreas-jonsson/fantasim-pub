@@ -59,6 +59,11 @@ const (
 	Troll
 	Elven
 	Deamon
+
+	// Wildlife
+	Dear
+	Boar
+	Wolf
 )
 
 func (r UnitRace) String() string {
@@ -77,6 +82,12 @@ func (r UnitRace) String() string {
 		return "Elven"
 	case Deamon:
 		return "Deamon"
+	case Dear:
+		return "Dear"
+	case Boar:
+		return "Boar"
+	case Wolf:
+		return "Wolf"
 	default:
 		return "Unknown Race"
 	}
