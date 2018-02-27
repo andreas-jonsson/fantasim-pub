@@ -316,8 +316,8 @@ func update(backBuffer *image.RGBA, cvr *api.CreateViewRequest, rvresp *api.Read
 
 			if tileData.Building != api.InvalidID {
 				tile = tileReg["floor"]
-				fg = color.RGBA{R: 89, G: 19, B: 9, A: 0xFF}
-				bg = color.RGBA{R: 109, G: 29, A: 0xFF}
+				fg = buildingColors[int(tileData.BuildingType)%len(buildingColors)]
+				bg = buildingColors[int(^tileData.BuildingType)%len(buildingColors)]
 			}
 
 			if tile == nil {
@@ -393,6 +393,21 @@ var (
 	defaultTextBgColor = color.RGBA{A: 0xFF}
 	textBgColor        = defaultTextBgColor
 )
+
+var buildingColors = []color.RGBA{
+	{90, 39, 41, 255},
+	{118, 57, 49, 255},
+	{145, 85, 77, 255},
+	{126, 46, 31, 255},
+	{152, 80, 60, 255},
+	{165, 113, 78, 255},
+	{133, 87, 35, 255},
+	{185, 156, 107, 255},
+	{213, 196, 161, 255},
+	{87, 65, 47, 255},
+	{121, 96, 76, 255},
+	{171, 149, 132, 255},
+}
 
 func Start(enc api.Encoder, dec, decInfo api.Decoder) error {
 	var version string
