@@ -37,7 +37,10 @@ import (
 
 const fantasimVersionString = "0.0.1"
 
-var noise = opensimplex.NewWithSeed(time.Now().UnixNano())
+var (
+	startTime = time.Now()
+	noise     = opensimplex.NewWithSeed(time.Now().UnixNano())
+)
 
 var idCounter uint64
 
@@ -324,9 +327,16 @@ func update(backBuffer *image.RGBA, cvr *api.CreateViewRequest, rvresp *api.Read
 				log.Fatalln("Could not load tile!")
 			}
 
+			n := int(noise.Eval2(float64(x), float64(y)) * 10)
+			ticks500 := int(time.Since(startTime)/(time.Second/2)) + n
+			ticks1000 := int(time.Since(startTime)/time.Second) + n
+			numItems := len(tileData.Items)
+			showUnit := ticks500%5 != 0 || numItems == 0
+			numUnits := len(tileData.Units)
+
 			switch {
-			case len(tileData.Units) > 0:
-				unit := tileData.Units[0]
+			case numUnits > 0 && showUnit:
+				unit := tileData.Units[ticks1000%numUnits]
 				fg := color.RGBA{R: 0xFF, A: 0xFF}
 
 				switch unit.Allegiance {
@@ -337,11 +347,11 @@ func update(backBuffer *image.RGBA, cvr *api.CreateViewRequest, rvresp *api.Read
 				}
 
 				blitImage(backBuffer, dp, unitTile(unit), fg, bg)
-			case len(tileData.Items) > 0:
+			case numItems > 0:
 				fg := color.RGBA{R: 139, G: 69, B: 19, A: 0xFF}
 				tile := asciiReg["?"]
 
-				if len(tileData.Items) > 1 {
+				if numItems > 1 {
 					fg = color.RGBA{R: 189, G: 129, B: 60, A: 0xFF}
 					tile = tileReg["crate"]
 				} else {
@@ -645,6 +655,8 @@ func Start(enc api.Encoder, dec, decInfo api.Decoder) error {
 										contextMenuText = append(contextMenuText, "Tile: Sand")
 									case t.Flags.Is(api.Snow):
 										contextMenuText = append(contextMenuText, "Tile: Snow")
+									case t.Flags.Is(api.Brook):
+										contextMenuText = append(contextMenuText, "Tile: Brook")
 									default:
 										contextMenuText = append(contextMenuText, "Tile: Grass")
 									}
