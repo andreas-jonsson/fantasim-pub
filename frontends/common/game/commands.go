@@ -18,7 +18,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 package game
 
 import (
-	"fmt"
 	"image"
 
 	"github.com/andreas-jonsson/fantasim-pub/api"
@@ -220,7 +219,7 @@ func exploreLocation(enc api.Encoder) error {
 	return nil
 }
 
-func attackUnit(enc api.Encoder) error {
+func attackUnits(enc api.Encoder) error {
 	pickTool = func(enc api.Encoder, p, _, _ image.Point, _ *api.ReadViewResponse) error {
 		pickTool = nil
 		areaToolStart = p
@@ -239,7 +238,9 @@ func attackUnit(enc api.Encoder) error {
 				for x := r.Min.X; x <= r.Max.X; x++ {
 					if tu := resp.Data[y*vp.X+x].Units; len(tu) > 0 {
 						for _, u := range tu {
-							units = append(units, u.ID)
+							if u.Allegiance != api.Friendly {
+								units = append(units, u.ID)
+							}
 						}
 					}
 				}
@@ -250,20 +251,12 @@ func attackUnit(enc api.Encoder) error {
 				return nil
 			}
 
-			// Just pick one unit for now.
-			id, err := encodeRequest(enc, &api.DebugCommandRequest{fmt.Sprintf("attack %x", units[0])})
+			id, err := encodeRequest(enc, &api.AttackUnitsRequest{units})
 			if err != nil {
 				return err
 			}
 
-			if resp, err := decodeResponse(id); err != nil {
-				return err
-			} else {
-				s := resp.(*api.DebugCommandResponse).Error
-				if s != "" {
-					glog(s)
-				}
-			}
+			discardResponse(id)
 			return nil
 		}
 		return nil

@@ -87,6 +87,11 @@ var rootMenu = &menuPage{
 				title: "Order",
 				options: []*menuOption{
 					{
+						key:  'a',
+						text: "Attack/Hunt",
+						cb:   attackUnits,
+					},
+					{
 						key:  'e',
 						text: "Explore",
 						cb:   exploreLocation,
@@ -140,11 +145,6 @@ var rootMenu = &menuPage{
 			subMenu: &menuPage{
 				title: "Debug",
 				options: []*menuOption{
-					{
-						key:  'a',
-						text: "Attack unit",
-						cb:   attackUnit,
-					},
 					{
 						key:  'w',
 						text: "Spawn worker",
