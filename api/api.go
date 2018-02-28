@@ -107,6 +107,21 @@ const (
 	FirewoodItem
 	PlankItem
 	StoneItem
+	MeatItem
+	BonesItem
+
+	// Corpses
+	HumanCorpseItem
+	DwarfCorpseItem
+	GoblinCorpseItem
+	OrcCorpseItem
+	TrollCorpseItem
+	ElvenCorpseItem
+	DeamonCorpseItem
+
+	DearCorpseItem
+	BoarCorpseItem
+	WolfCorpseItem
 )
 
 func (c ItemClass) String() string {
@@ -121,8 +136,16 @@ func (c ItemClass) String() string {
 		return "Plank"
 	case StoneItem:
 		return "Stone"
+	case MeatItem:
+		return "Meat"
+	case BonesItem:
+		return "Bones"
+	case HumanCorpseItem, DwarfCorpseItem, GoblinCorpseItem, OrcCorpseItem, TrollCorpseItem, ElvenCorpseItem, DeamonCorpseItem:
+		return "Corpse"
+	case DearCorpseItem, BoarCorpseItem, WolfCorpseItem:
+		return "Animal Corpse"
 	default:
-		panic("invalid building type")
+		panic("invalid item type")
 	}
 }
 
@@ -131,6 +154,7 @@ type BuildingType uint8
 const (
 	StockpileBuilding BuildingType = iota
 	SawmillBuilding
+	ButcherShoppBuilding
 )
 
 func (b BuildingType) String() string {
@@ -139,6 +163,8 @@ func (b BuildingType) String() string {
 		return "Stockpile"
 	case SawmillBuilding:
 		return "Sawmill"
+	case ButcherShoppBuilding:
+		return "Butcher Shopp"
 	default:
 		panic("invalid building type")
 	}

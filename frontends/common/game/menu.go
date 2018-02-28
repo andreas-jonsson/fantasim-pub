@@ -54,6 +54,14 @@ var rootMenu = &menuPage{
 				title: "Designate",
 				options: []*menuOption{
 					{
+						key:  'b',
+						text: "Butcher Shopp",
+						cb: func(enc api.Encoder) error {
+							designateBuilding(enc, api.ButcherShoppBuilding)
+							return nil
+						},
+					},
+					{
 						key:  'p',
 						text: "Stockpile",
 						cb: func(enc api.Encoder) error {
@@ -132,6 +140,11 @@ var rootMenu = &menuPage{
 			subMenu: &menuPage{
 				title: "Debug",
 				options: []*menuOption{
+					{
+						key:  'a',
+						text: "Attack unit",
+						cb:   attackUnit,
+					},
 					{
 						key:  'w',
 						text: "Spawn worker",

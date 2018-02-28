@@ -184,13 +184,59 @@ func unitTile(u api.UnitViewData) *image.Paletted {
 	}
 }
 
+func itemTile(it api.ItemClass, bg color.RGBA) (*image.Paletted, color.RGBA, color.RGBA) {
+	tileReg := tilesetRegister["tiles"]
+	asciiReg := tilesetRegister["ascii"]
+	fg := color.RGBA{R: 139, G: 69, B: 19, A: 0xFF}
+	red := color.RGBA{R: 200, G: 0, B: 0, A: 0xFF}
+	white := color.RGBA{R: 220, G: 220, B: 220, A: 0xFF}
+
+	switch it {
+	case api.PartialItem:
+		return asciiReg["&"], color.RGBA{R: 129, G: 129, B: 220, A: 0xFF}, bg
+	case api.LogItem:
+		return asciiReg["-"], fg, bg
+	case api.FirewoodItem:
+		return asciiReg["\""], fg, bg
+	case api.PlankItem:
+		return asciiReg["="], fg, bg
+	case api.StoneItem:
+		return tileReg["stone"], color.RGBA{R: 128, G: 128, B: 128, A: 0xFF}, bg
+	case api.MeatItem:
+		return asciiReg["#"], color.RGBA{R: 200, G: 128, B: 128, A: 0xFF}, bg
+	case api.BonesItem:
+		return asciiReg["%"], color.RGBA{R: 200, G: 200, B: 200, A: 0xFF}, bg
+	case api.HumanCorpseItem:
+		return asciiReg["h"], white, red
+	case api.DwarfCorpseItem:
+		return asciiReg["d"], white, red
+	case api.GoblinCorpseItem:
+		return asciiReg["g"], white, red
+	case api.OrcCorpseItem:
+		return asciiReg["o"], white, red
+	case api.TrollCorpseItem:
+		return asciiReg["T"], white, red
+	case api.ElvenCorpseItem:
+		return asciiReg["e"], white, red
+	case api.DeamonCorpseItem:
+		return tileReg["deamon"], white, red
+	case api.DearCorpseItem:
+		return asciiReg["d"], white, red
+	case api.BoarCorpseItem:
+		return asciiReg["b"], white, red
+	case api.WolfCorpseItem:
+		return asciiReg["w"], white, red
+	default:
+		return asciiReg["?"], fg, bg
+	}
+}
+
 func Initialize() error {
 	return buildTilesets()
 }
 
 func update(backBuffer *image.RGBA, cvr *api.CreateViewRequest, rvresp *api.ReadViewResponse, cameraPos, currentCameraPos image.Point) error {
 	tileReg := tilesetRegister["tiles"]
-	asciiReg := tilesetRegister["ascii"]
 
 	treeBgColor := color.RGBA{R: 155, G: 184, B: 93, A: 0xFF}
 	stoneColor := color.RGBA{R: 128, G: 128, B: 128, A: 0xFF}
@@ -347,29 +393,12 @@ func update(backBuffer *image.RGBA, cvr *api.CreateViewRequest, rvresp *api.Read
 				}
 
 				blitImage(backBuffer, dp, unitTile(unit), fg, bg)
+			case numItems > 1:
+				fg = color.RGBA{R: 189, G: 129, B: 60, A: 0xFF}
+				tile = tileReg["crate"]
+				blitImage(backBuffer, dp, tile, fg, bg)
 			case numItems > 0:
-				fg := color.RGBA{R: 139, G: 69, B: 19, A: 0xFF}
-				tile := asciiReg["?"]
-
-				if numItems > 1 {
-					fg = color.RGBA{R: 189, G: 129, B: 60, A: 0xFF}
-					tile = tileReg["crate"]
-				} else {
-					switch tileData.Items[0].Class {
-					case api.PartialItem:
-						tile = asciiReg["&"]
-						fg = color.RGBA{R: 129, G: 129, B: 220, A: 0xFF}
-					case api.LogItem:
-						tile = asciiReg["-"]
-					case api.FirewoodItem:
-						tile = asciiReg["\""]
-					case api.PlankItem:
-						tile = asciiReg["="]
-					case api.StoneItem:
-						fg = stoneColor
-						tile = tileReg["stone"]
-					}
-				}
+				tile, fg, bg = itemTile(tileData.Items[0].Class, bg)
 				blitImage(backBuffer, dp, tile, fg, bg)
 			default:
 				blitImage(backBuffer, dp, tile, fg, bg)
@@ -441,6 +470,8 @@ func Start(enc api.Encoder, dec, decInfo api.Decoder) error {
 		requestedCameraPos := cameraPos
 		responseCameraPos := cameraPos
 		mousePos := sz.Div(2)
+		logUpdated := time.Now()
+		logSize := 0
 
 		cvr := api.CreateViewRequest{
 			X: cameraPos.X,
@@ -773,19 +804,27 @@ func Start(enc api.Encoder, dec, decInfo api.Decoder) error {
 			print(sz.X/2-len(title)/2, 0, title)
 
 			logLines = updateLogWithServerInfo(logLines)
+			logLen := len(logLines)
+
+			if logLen > logSize {
+				logUpdated = time.Now()
+				logSize = logLen
+			}
 
 			if logWindow != nil {
 				logWindow.clear()
 
 				n := 1
 				for y := logWindow.canvas.Size().Y - 1; y >= 0; y-- {
-					i := len(logLines) - n
+					i := logLen - n
 					n++
 					if i < 0 {
 						continue
 					}
 					logWindow.print(0, y, logLines[i])
 				}
+			} else if logLen > 0 && time.Since(logUpdated) < time.Second*5 {
+				print(2, sz.Y-1, " "+logLines[logLen-1]+" ")
 			}
 
 			if ctrlWindow != nil {
@@ -823,5 +862,5 @@ func Start(enc api.Encoder, dec, decInfo api.Decoder) error {
 		return nil
 	}
 
-	return vsdl.Initialize(sdlMain, vsdl.ConfigWithRenderer(sz, image.ZP))
+	return vsdl.Initialize(sdlMain, vsdl.ConfigWithRenderer(image.Pt(1280, 720), sz))
 }

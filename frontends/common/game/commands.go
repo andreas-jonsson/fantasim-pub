@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 package game
 
 import (
+	"fmt"
 	"image"
 
 	"github.com/andreas-jonsson/fantasim-pub/api"
@@ -214,6 +215,57 @@ func exploreLocation(enc api.Encoder) error {
 		discardResponse(id)
 
 		glogf("Explore location: %d,%d", wp.X, wp.Y)
+		return nil
+	}
+	return nil
+}
+
+func attackUnit(enc api.Encoder) error {
+	pickTool = func(enc api.Encoder, p, _, _ image.Point, _ *api.ReadViewResponse) error {
+		pickTool = nil
+		areaToolStart = p
+
+		areaTool = func(enc api.Encoder, r image.Rectangle, camPos, vp image.Point, resp *api.ReadViewResponse) error {
+			defer resetAllTools()
+			if resp == nil {
+				return nil
+			}
+
+			r.Min.X /= 2
+			r.Max.X /= 2
+
+			var units []uint64
+			for y := r.Min.Y; y <= r.Max.Y; y++ {
+				for x := r.Min.X; x <= r.Max.X; x++ {
+					if tu := resp.Data[y*vp.X+x].Units; len(tu) > 0 {
+						for _, u := range tu {
+							units = append(units, u.ID)
+						}
+					}
+				}
+			}
+
+			if len(units) == 0 {
+				alert()
+				return nil
+			}
+
+			// Just pick one unit for now.
+			id, err := encodeRequest(enc, &api.DebugCommandRequest{fmt.Sprintf("attack %x", units[0])})
+			if err != nil {
+				return err
+			}
+
+			if resp, err := decodeResponse(id); err != nil {
+				return err
+			} else {
+				s := resp.(*api.DebugCommandResponse).Error
+				if s != "" {
+					glog(s)
+				}
+			}
+			return nil
+		}
 		return nil
 	}
 	return nil
