@@ -206,6 +206,10 @@ func itemTile(it api.ItemClass, bg color.RGBA) (*image.Paletted, color.RGBA, col
 		return asciiReg["#"], color.RGBA{R: 200, G: 128, B: 128, A: 0xFF}, bg
 	case api.BonesItem:
 		return asciiReg["%"], color.RGBA{R: 200, G: 200, B: 200, A: 0xFF}, bg
+	case api.SeedsItem:
+		return asciiReg[":"], color.RGBA{R: 190, G: 180, B: 19, A: 0xFF}, bg
+	case api.CropItem:
+		return asciiReg["^"], color.RGBA{R: 100, G: 190, B: 100, A: 0xFF}, bg
 	case api.HumanCorpseItem:
 		return asciiReg["h"], white, red
 	case api.DwarfCorpseItem:
@@ -625,7 +629,7 @@ func Start(enc api.Encoder, dec, decInfo api.Decoder) error {
 
 							switch {
 							case pickTool != nil:
-								if err := pickTool(enc, mp, mouseWorldPos, cameraPos, rvresp); err != nil {
+								if err := pickTool(enc, mp, mouseWorldPos, viewportSize, rvresp); err != nil {
 									return err
 								}
 							case areaTool != nil:

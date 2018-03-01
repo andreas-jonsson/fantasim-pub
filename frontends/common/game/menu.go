@@ -62,6 +62,14 @@ var rootMenu = &menuPage{
 						},
 					},
 					{
+						key:  'f',
+						text: "Farm",
+						cb: func(enc api.Encoder) error {
+							designateBuilding(enc, api.FarmBuilding)
+							return nil
+						},
+					},
+					{
 						key:  'p',
 						text: "Stockpile",
 						cb: func(enc api.Encoder) error {
@@ -107,6 +115,11 @@ var rootMenu = &menuPage{
 						cb:   mineLocation,
 					},
 					{
+						key:  's',
+						text: "Geather seeds",
+						cb:   gatherSeeds,
+					},
+					{
 						key:  'c',
 						text: "Collect items",
 						cb:   collectItems,
@@ -135,6 +148,11 @@ var rootMenu = &menuPage{
 							debugCommand(enc, "plank")
 							return nil
 						},
+					},
+					{
+						key:  's',
+						text: "Seed Farm",
+						cb:   seedFarm,
 					},
 				},
 			},

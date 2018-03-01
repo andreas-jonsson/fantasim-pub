@@ -130,6 +130,48 @@ func collectItems(enc api.Encoder) error {
 	return nil
 }
 
+func gatherSeeds(enc api.Encoder) error {
+	pickTool = func(enc api.Encoder, p, _, _ image.Point, _ *api.ReadViewResponse) error {
+		pickTool = nil
+		areaToolStart = p
+
+		areaTool = func(enc api.Encoder, r image.Rectangle, camPos, vp image.Point, resp *api.ReadViewResponse) error {
+			defer resetAllTools()
+			if resp == nil {
+				return nil
+			}
+
+			r.Min.X /= 2
+			r.Max.X /= 2
+
+			var plants []api.Point
+			for y := r.Min.Y; y <= r.Max.Y; y++ {
+				for x := r.Min.X; x <= r.Max.X; x++ {
+					if resp.Data[y*vp.X+x].Flags.Is(api.Plant) {
+						plants = append(plants, api.Point{camPos.X + x, camPos.Y + y})
+					}
+				}
+			}
+
+			if len(plants) == 0 {
+				alert()
+				return nil
+			}
+
+			id, err := encodeRequest(enc, &api.GatherSeedsRequest{plants})
+			if err != nil {
+				return err
+			}
+			discardResponse(id)
+
+			glogf("Geather seeds in area: %v", r)
+			return nil
+		}
+		return nil
+	}
+	return nil
+}
+
 func designateBuilding(enc api.Encoder, b api.BuildingType) error {
 	pickTool = func(enc api.Encoder, p, _, _ image.Point, _ *api.ReadViewResponse) error {
 		pickTool = nil
@@ -171,6 +213,28 @@ func designateBuilding(enc api.Encoder, b api.BuildingType) error {
 			glogf("Could not build %s: %v", b, buildResp.Error)
 			return nil
 		}
+		return nil
+	}
+	return nil
+}
+
+func seedFarm(enc api.Encoder) error {
+	pickTool = func(enc api.Encoder, p, wp, vp image.Point, rvresp *api.ReadViewResponse) error {
+		defer resetAllTools()
+
+		p.X /= 2
+		tile := rvresp.Data[p.Y*vp.X+p.X]
+
+		if tile.Building == api.InvalidID || tile.BuildingType != api.FarmBuilding {
+			glog("No farm at location:", wp)
+			return nil
+		}
+
+		id, err := encodeRequest(enc, &api.SeedFarmRequest{tile.Building})
+		if err != nil {
+			return err
+		}
+		discardResponse(id)
 		return nil
 	}
 	return nil

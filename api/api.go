@@ -109,6 +109,8 @@ const (
 	StoneItem
 	MeatItem
 	BonesItem
+	SeedsItem
+	CropItem
 
 	// Corpses
 	HumanCorpseItem
@@ -140,6 +142,10 @@ func (c ItemClass) String() string {
 		return "Meat"
 	case BonesItem:
 		return "Bones"
+	case SeedsItem:
+		return "Seeds"
+	case CropItem:
+		return "Crop"
 	case HumanCorpseItem, DwarfCorpseItem, GoblinCorpseItem, OrcCorpseItem, TrollCorpseItem, ElvenCorpseItem, DeamonCorpseItem:
 		return "Corpse"
 	case DearCorpseItem, BoarCorpseItem, WolfCorpseItem:
@@ -155,6 +161,7 @@ const (
 	StockpileBuilding BuildingType = iota
 	SawmillBuilding
 	ButcherShoppBuilding
+	FarmBuilding
 )
 
 func (b BuildingType) String() string {
@@ -165,6 +172,8 @@ func (b BuildingType) String() string {
 		return "Sawmill"
 	case ButcherShoppBuilding:
 		return "Butcher Shopp"
+	case FarmBuilding:
+		return "Farm"
 	default:
 		panic("invalid building type")
 	}
@@ -313,6 +322,18 @@ type CollectItemsRequest struct {
 
 type CollectItemsResponse Empty
 
+type GatherSeedsRequest struct {
+	Seeds []Point `json:"seeds"`
+}
+
+type GatherSeedsResponse Empty
+
+type SeedFarmRequest struct {
+	BuildingID uint64 `json:"building_id"`
+}
+
+type SeedFarmResponse Empty
+
 type BuildRequest struct {
 	Building BuildingType `json:"building"`
 	Location Rect         `json:"location"`
@@ -341,6 +362,11 @@ func registerType(m map[string]reflect.Type, v interface{}) {
 	m[n] = t
 }
 
+func register(req, resp interface{}) {
+	registerType(requestTypeRegistry, req)
+	registerType(responseTypeRegistry, resp)
+}
+
 func init() {
 	registerType(requestTypeRegistry, CloseRequest{})
 	registerType(requestTypeRegistry, DebugCommandRequest{})
@@ -357,6 +383,7 @@ func init() {
 	registerType(requestTypeRegistry, CollectItemsRequest{})
 	registerType(requestTypeRegistry, BuildRequest{})
 	registerType(requestTypeRegistry, AttackUnitsRequest{})
+	registerType(requestTypeRegistry, GatherSeedsRequest{})
 
 	registerType(responseTypeRegistry, Empty{})
 	registerType(responseTypeRegistry, DebugCommandResponse{})
@@ -373,6 +400,9 @@ func init() {
 	registerType(responseTypeRegistry, CollectItemsResponse{})
 	registerType(responseTypeRegistry, BuildResponse{})
 	registerType(responseTypeRegistry, AttackUnitsResponse{})
+	registerType(responseTypeRegistry, GatherSeedsResponse{})
+
+	register(SeedFarmRequest{}, SeedFarmResponse{})
 }
 
 type (
