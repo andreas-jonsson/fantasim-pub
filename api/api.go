@@ -301,6 +301,7 @@ type UnitStatsResponse struct {
 	Name   string   `json:"name"`
 	Health float32  `json:"health"`
 	Thirst float32  `json:"thirst"`
+	Hunger float32  `json:"hunger"`
 	Debug  []string `json:"debug"`
 }
 

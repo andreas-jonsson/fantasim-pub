@@ -672,6 +672,7 @@ func Start(enc api.Encoder, dec, decInfo api.Decoder) error {
 											fmt.Sprintf("Unit ID: %v", u.ID),
 											fmt.Sprintf("Health:  %v", r.Health),
 											fmt.Sprintf("Thirst:  %v", r.Thirst),
+											fmt.Sprintf("Hunger:  %v", r.Hunger),
 											"",
 										}
 										for _, s := range r.Debug {
