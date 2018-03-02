@@ -158,6 +158,7 @@ func updateLogWithServerInfo(lines []string) []string {
 func unitTile(u api.UnitViewData) *image.Paletted {
 	tileReg := tilesetRegister["tiles"]
 	asciiReg := tilesetRegister["ascii"]
+	miscReg := tilesetRegister["misc"]
 
 	switch u.Race {
 	case api.Human:
@@ -165,7 +166,7 @@ func unitTile(u api.UnitViewData) *image.Paletted {
 	case api.Dwarf:
 		return asciiReg["d"]
 	case api.Goblin:
-		return asciiReg["g"]
+		return miscReg["goblin"]
 	case api.Orc:
 		return asciiReg["o"]
 	case api.Troll:
@@ -190,6 +191,9 @@ func unitTile(u api.UnitViewData) *image.Paletted {
 func itemTile(it api.ItemClass, bg color.RGBA) (*image.Paletted, color.RGBA, color.RGBA) {
 	tileReg := tilesetRegister["tiles"]
 	asciiReg := tilesetRegister["ascii"]
+	miscReg := tilesetRegister["misc"]
+	variousReg := tilesetRegister["various"]
+
 	fg := color.RGBA{R: 139, G: 69, B: 19, A: 0xFF}
 	red := color.RGBA{R: 200, G: 0, B: 0, A: 0xFF}
 	white := color.RGBA{R: 220, G: 220, B: 220, A: 0xFF}
@@ -200,25 +204,25 @@ func itemTile(it api.ItemClass, bg color.RGBA) (*image.Paletted, color.RGBA, col
 	case api.LogItem:
 		return asciiReg["-"], fg, bg
 	case api.FirewoodItem:
-		return asciiReg["\""], fg, bg
+		return miscReg["firewood"], fg, bg
 	case api.PlankItem:
 		return asciiReg["="], fg, bg
 	case api.StoneItem:
 		return tileReg["stone"], color.RGBA{R: 128, G: 128, B: 128, A: 0xFF}, bg
 	case api.MeatItem:
-		return asciiReg["#"], color.RGBA{R: 200, G: 128, B: 128, A: 0xFF}, bg
+		return variousReg["meat"], color.RGBA{R: 210, G: 128, B: 128, A: 0xFF}, bg
 	case api.BonesItem:
-		return asciiReg["%"], color.RGBA{R: 200, G: 200, B: 200, A: 0xFF}, bg
+		return variousReg["bone"], color.RGBA{R: 200, G: 200, B: 200, A: 0xFF}, bg
 	case api.SeedsItem:
-		return asciiReg[":"], color.RGBA{R: 190, G: 180, B: 19, A: 0xFF}, bg
+		return miscReg["seeds"], color.RGBA{R: 190, G: 180, B: 19, A: 0xFF}, bg
 	case api.CropItem:
-		return asciiReg["^"], color.RGBA{R: 100, G: 190, B: 100, A: 0xFF}, bg
+		return miscReg["crop"], color.RGBA{R: 100, G: 190, B: 100, A: 0xFF}, bg
 	case api.HumanCorpseItem:
 		return asciiReg["h"], white, red
 	case api.DwarfCorpseItem:
 		return asciiReg["d"], white, red
 	case api.GoblinCorpseItem:
-		return asciiReg["g"], white, red
+		return miscReg["goblin"], white, red
 	case api.OrcCorpseItem:
 		return asciiReg["o"], white, red
 	case api.TrollCorpseItem:

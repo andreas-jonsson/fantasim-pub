@@ -32,5 +32,69 @@
             "crate": 59,
             "barrel": 60
         }
+    },
+
+    "accesories": {
+        "source": "16x16_accesories_books_diamons_hair.png",
+        "tile_width": 16,
+        "tile_height": 16,
+
+        "mapping": {
+            "ring": 0
+        }
+    },
+
+    "cursors": {
+        "source": "16x16_arrows_pointers_aim.png",
+        "tile_width": 16,
+        "tile_height": 16,
+
+        "mapping": {
+            "up": 0
+        }
+    },
+
+    "misc": {
+        "source": "16x16_misc.png",
+        "tile_width": 16,
+        "tile_height": 16,
+
+        "mapping": {
+            "seeds": 68,
+            "crop": 71,
+            "firewood": 99,
+            "goblin": 122
+        }
+    },
+
+    "patterns": {
+        "source": "16x16_tiles_ditherPatterns.png",
+        "tile_width": 16,
+        "tile_height": 16,
+
+        "mapping": {
+            "0": 0
+        }
+    },
+
+    "various": {
+        "source": "16x16_various.png",
+        "tile_width": 16,
+        "tile_height": 16,
+
+        "mapping": {
+            "meat": 184,
+            "bone": 223
+        }
+    },
+
+    "weapons": {
+        "source": "16x16_weapons.png",
+        "tile_width": 16,
+        "tile_height": 16,
+
+        "mapping": {
+            "sword": 0
+        }
     }
 }
