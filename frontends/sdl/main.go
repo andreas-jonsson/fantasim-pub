@@ -28,10 +28,15 @@ import (
 	"log"
 	"net/url"
 	"os"
+	"os/exec"
+	"runtime"
+	"time"
 
 	"github.com/andreas-jonsson/fantasim-pub/frontends/common/game"
 	"golang.org/x/net/websocket"
 )
+
+const lobbyURL = "http://lobby.fantasim.net"
 
 var playerKey, playerName string
 
@@ -66,29 +71,72 @@ func main() {
 	origin := fmt.Sprintf("http://%s/", serverAddress)
 	apiWs, err := websocket.Dial(fmt.Sprintf("ws://%s/api", serverAddress), "", origin)
 	if err != nil {
+		open(lobbyURL)
 		log.Fatalln(err)
 	}
 	defer apiWs.Close()
+	apiSocket := newTimeoutReadWriter(apiWs, time.Second*3)
 
 	infoWs, err := websocket.Dial(fmt.Sprintf("ws://%s/info", serverAddress), "", origin)
 	if err != nil {
+		open(lobbyURL)
 		log.Fatalln(err)
 	}
 	defer infoWs.Close()
 
-	if err := json.NewEncoder(io.MultiWriter(apiWs, infoWs)).Encode(&playerKey); err != nil {
+	if err := json.NewEncoder(io.MultiWriter(apiSocket, infoWs)).Encode(&playerKey); err != nil {
 		log.Fatalln(err)
 	}
 
-	if err := json.NewEncoder(apiWs).Encode("gob"); err != nil {
+	if err := json.NewEncoder(apiSocket).Encode("gob"); err != nil {
 		log.Fatalln(err)
 	}
 
-	enc := gob.NewEncoder(apiWs)
-	dec := gob.NewDecoder(apiWs)
+	enc := gob.NewEncoder(apiSocket)
+	dec := gob.NewDecoder(apiSocket)
 	decInfo := json.NewDecoder(infoWs)
 
 	if err := game.Start(enc, dec, decInfo); err != nil {
 		log.Fatalln(err)
 	}
+}
+
+type TimeoutReadWriter struct {
+	conn *websocket.Conn
+	t    time.Duration
+}
+
+func newTimeoutReadWriter(conn *websocket.Conn, timeout time.Duration) io.ReadWriter {
+	return &TimeoutReadWriter{conn, timeout}
+}
+
+func (trw *TimeoutReadWriter) Read(p []byte) (int, error) {
+	conn := trw.conn
+	conn.SetReadDeadline(time.Now().Add(trw.t))
+	return conn.Read(p)
+}
+
+func (trw *TimeoutReadWriter) Write(b []byte) (int, error) {
+	conn := trw.conn
+	conn.SetWriteDeadline(time.Now().Add(trw.t))
+	return conn.Write(b)
+}
+
+func open(url string) error {
+	var (
+		cmd  string
+		args []string
+	)
+
+	switch runtime.GOOS {
+	case "windows":
+		cmd = "cmd"
+		args = []string{"/c", "start"}
+	case "darwin":
+		cmd = "open"
+	default:
+		cmd = "xdg-open"
+	}
+
+	return exec.Command(cmd, append(args, url)...).Start()
 }
