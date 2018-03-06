@@ -393,6 +393,10 @@ func update(backBuffer *image.RGBA, cvr *api.CreateViewRequest, rvresp *api.Read
 
 			switch {
 			case numUnits > 0 && showUnit:
+				if ticks1000 < 0 {
+					ticks1000 = ticks1000 * -1
+				}
+
 				unit := tileData.Units[ticks1000%numUnits]
 				fg := color.RGBA{R: 0xFF, A: 0xFF}
 
