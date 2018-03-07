@@ -46,8 +46,6 @@ const (
 	imgScale  = 1
 )
 
-var idCounter uint64
-
 var (
 	keys   = map[int]bool{}
 	canvas *js.Object
@@ -64,11 +62,6 @@ func assert(err error) {
 	if err != nil {
 		throw(err)
 	}
-}
-
-func newId() uint64 {
-	idCounter++
-	return idCounter
 }
 
 func decodePNG(name string) (*image.Paletted, error) {

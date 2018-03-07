@@ -21,12 +21,12 @@ import (
 	"fmt"
 
 	"github.com/andreas-jonsson/fantasim-pub/api"
-	"github.com/andreas-jonsson/vsdl-go"
+	"github.com/andreas-jonsson/fantasim-pub/frontends/common/system"
 )
 
 type menuOption struct {
 	text    string
-	key     vsdl.Keycode
+	key     byte
 	cb      func(api.Encoder) error
 	subMenu *menuPage
 }
@@ -203,17 +203,17 @@ func resetMenuWindow() {
 	menuStack = menuStack[:1]
 }
 
-func updateCtrlWindow(keysym vsdl.Keysym) func(api.Encoder) error {
+func updateCtrlWindow(ev *system.KeyboardEvent) func(api.Encoder) error {
 	currentMenu := menuStack[len(menuStack)-1]
 
 	ln := len(menuStack)
-	if ln > 1 && keysym.Sym == vsdl.BackSpaceKey {
+	if ln > 1 && ev.Key == system.KeyBackSpace {
 		menuStack = menuStack[:ln-1]
 		return nil
 	}
 
 	for _, o := range currentMenu.options {
-		if o.key == keysym.Sym {
+		if o.key == ev.Name[0] {
 			if o.subMenu != nil {
 				menuStack = append(menuStack, o.subMenu)
 			} else {

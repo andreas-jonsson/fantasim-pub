@@ -24,6 +24,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"image"
 	"io"
 	"log"
 	"net/url"
@@ -33,12 +34,17 @@ import (
 	"time"
 
 	"github.com/andreas-jonsson/fantasim-pub/frontends/common/game"
+	"github.com/andreas-jonsson/fantasim-pub/frontends/sdl/system"
 	"golang.org/x/net/websocket"
 )
 
 const lobbyURL = "http://lobby.fantasim.net"
 
 var playerKey, playerName string
+
+func init() {
+	runtime.LockOSThread()
+}
 
 func main() {
 	var (
@@ -62,10 +68,6 @@ func main() {
 		playerName = q.Get("name")
 		playerKey = q.Get("key")
 		serverAddress = u.Host
-	}
-
-	if err := game.Initialize(); err != nil {
-		log.Fatalln(err)
 	}
 
 	origin := fmt.Sprintf("http://%s/", serverAddress)
@@ -95,6 +97,17 @@ func main() {
 	enc := gob.NewEncoder(apiSocket)
 	dec := gob.NewDecoder(apiSocket)
 	decInfo := json.NewDecoder(infoWs)
+
+	sz := image.Pt(1280, 720)
+	sys, err := system.InitSDL(sz, sz, false)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	defer sys.Quit()
+
+	if err := game.Initialize(sys, sys); err != nil {
+		log.Fatalln(err)
+	}
 
 	if err := game.Start(enc, dec, decInfo); err != nil {
 		log.Fatalln(err)
