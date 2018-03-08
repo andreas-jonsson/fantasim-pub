@@ -172,6 +172,36 @@ func gatherSeeds(enc api.Encoder) error {
 	return nil
 }
 
+func buildStructure(enc api.Encoder, s api.StructureType, c api.ItemClass) error {
+	pickTool = func(enc api.Encoder, p, _, _ image.Point, _ *api.ReadViewResponse) error {
+		pickTool = nil
+		areaToolStart = p
+
+		areaTool = func(enc api.Encoder, r image.Rectangle, camPos, _ image.Point, _ *api.ReadViewResponse) error {
+			defer resetAllTools()
+
+			r.Min.X /= 2
+			r.Max.X /= 2
+			r = r.Add(camPos)
+
+			id, err := encodeRequest(enc, &api.BuildRequest{
+				Structure: s,
+				Material:  c,
+				Location:  api.Rect{Min: api.Point{r.Min.X, r.Min.Y}, Max: api.Point{r.Max.X + 1, r.Max.Y + 1}},
+			})
+			if err != nil {
+				return err
+			}
+			discardResponse(id)
+
+			glogf("Building structure: %v", r)
+			return nil
+		}
+		return nil
+	}
+	return nil
+}
+
 func designateBuilding(enc api.Encoder, b api.BuildingType) error {
 	pickTool = func(enc api.Encoder, p, _, _ image.Point, _ *api.ReadViewResponse) error {
 		pickTool = nil
@@ -190,7 +220,7 @@ func designateBuilding(enc api.Encoder, b api.BuildingType) error {
 				return nil
 			}
 
-			id, err := encodeRequest(enc, &api.BuildRequest{
+			id, err := encodeRequest(enc, &api.DesignateRequest{
 				Building: b,
 				Location: api.Rect{Min: api.Point{r.Min.X, r.Min.Y}, Max: api.Point{r.Max.X, r.Max.Y}},
 			})
@@ -203,7 +233,7 @@ func designateBuilding(enc api.Encoder, b api.BuildingType) error {
 				return err
 			}
 
-			buildResp := resp.(*api.BuildResponse)
+			buildResp := resp.(*api.DesignateResponse)
 			if buildResp.Error == "" {
 				glogf("%s is planed for area: %v", b, r)
 				return nil

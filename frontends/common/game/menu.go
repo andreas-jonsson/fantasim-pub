@@ -43,8 +43,34 @@ var rootMenu = &menuPage{
 			key:  'b',
 			text: "Build",
 			subMenu: &menuPage{
-				title:   "Build",
-				options: []*menuOption{},
+				title: "Build",
+				options: []*menuOption{
+					{
+						key:  'w',
+						text: "Wall",
+						subMenu: &menuPage{
+							title: "Material",
+							options: []*menuOption{
+								{
+									key:  'g',
+									text: "Log",
+									cb: func(enc api.Encoder) error {
+										buildStructure(enc, api.WallStructure, api.LogItem)
+										return nil
+									},
+								},
+								{
+									key:  's',
+									text: "Stone",
+									cb: func(enc api.Encoder) error {
+										buildStructure(enc, api.WallStructure, api.StoneItem)
+										return nil
+									},
+								},
+							},
+						},
+					},
+				},
 			},
 		},
 		{
