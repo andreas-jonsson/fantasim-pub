@@ -467,14 +467,8 @@ func Start(enc api.Encoder, dec, decInfo api.Decoder) error {
 							mp := image.Pt(mousePos.X/8, mousePos.Y/16)
 							mouseWorldPos := cameraPos.Add(image.Pt(int(mX), int(mY)))
 
-							switch {
-							case pickTool != nil:
+							if pickTool != nil {
 								if err := pickTool(enc, mp, mouseWorldPos, viewportSize, rvresp); err != nil {
-									return err
-								}
-							case areaTool != nil:
-								r := image.Rect(areaToolStart.X, areaToolStart.Y, mousePos.X/8, mousePos.Y/16)
-								if err := areaTool(enc, r, cameraPos, viewportSize, rvresp); err != nil {
 									return err
 								}
 							}
@@ -561,6 +555,13 @@ func Start(enc api.Encoder, dec, decInfo api.Decoder) error {
 							}
 						}
 					} else {
+						if t.Button == 1 && areaTool != nil {
+							r := image.Rect(areaToolStart.X, areaToolStart.Y, mousePos.X/8, mousePos.Y/16)
+							if err := areaTool(enc, r, cameraPos, viewportSize, rvresp); err != nil {
+								return err
+							}
+						}
+
 						contextMenu = nil
 						contextMenuText = nil
 					}
