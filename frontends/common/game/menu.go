@@ -198,6 +198,14 @@ var rootMenu = &menuPage{
 						},
 					},
 					{
+						key:  's',
+						text: "Stats",
+						cb: func(enc api.Encoder) error {
+							debugCommand(enc, "stats")
+							return nil
+						},
+					},
+					{
 						key:  'h',
 						text: "Jump to home location",
 						cb:   cameraToHomeLocation,

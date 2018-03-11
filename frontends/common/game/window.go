@@ -19,6 +19,7 @@ package game
 
 import (
 	"image"
+	"log"
 )
 
 type window struct {
@@ -42,6 +43,9 @@ func newWindow(title string, rect image.Rectangle, tileset map[string]*image.Pal
 func (w *window) clear() {
 	for y := w.canvas.Min.Y; y < w.canvas.Max.Y; y++ {
 		for x := w.canvas.Min.X; x < w.canvas.Max.X; x++ {
+			if w == nil || w.putch == nil {
+				log.Fatalln("aaaaaa", w, w.putch)
+			}
 			w.putch(x, y, string(" "))
 		}
 	}
