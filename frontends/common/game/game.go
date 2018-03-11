@@ -518,6 +518,10 @@ func Start(enc api.Encoder, dec, decInfo api.Decoder) error {
 										contextMenuText = append(contextMenuText, "Building: "+t.BuildingType.String())
 									}
 
+									if t.StructureType != api.NoStructure {
+										contextMenuText = append(contextMenuText, fmt.Sprintf("Structure: %s %s", t.StructureMaterial, t.StructureType))
+									}
+
 									switch {
 									case t.Flags.Is(api.Water):
 										contextMenuText = append(contextMenuText, "Tile: Water")

@@ -188,6 +188,15 @@ const (
 	WallStructure
 )
 
+func (s StructureType) String() string {
+	switch s {
+	case WallStructure:
+		return "Wall"
+	default:
+		panic("invalid structure type")
+	}
+}
+
 type Header struct {
 	Type string `json:"type"`
 	Id   int    `json:"id"`
