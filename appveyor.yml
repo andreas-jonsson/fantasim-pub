@@ -18,7 +18,6 @@ install:
     - curl -fsS -o dependencies.7z ftp://46.101.144.81/dependencies.7z
     - 7z x dependencies.7z -ofrontends\tools\package
 
-    - appveyor DownloadFile ftp://46.101.144.81/TDM-GCC-64.7z
     - curl -fsS -o TDM-GCC-64.7z ftp://46.101.144.81/TDM-GCC-64.7z
     - 7z x TDM-GCC-64.7z -oc:\
 
