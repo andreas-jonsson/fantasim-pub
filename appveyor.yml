@@ -13,10 +13,13 @@ environment:
 
 install:
     - appveyor DownloadFile https://storage.googleapis.com/golang/go1.9.3.windows-amd64.msi
-    
     - msiexec /i go1.9.3.windows-amd64.msi /q
-    - 7z x frontends\tools\build\dependencies.7z -ofrontends\tools\package
-    - 7z x frontends\tools\build\TDM-GCC-64.7z -oc:\
+
+    - appveyor DownloadFile ftp://46.101.144.81/dependencies.7z
+    - 7z x dependencies.7z -ofrontends\tools\package
+
+    - appveyor DownloadFile ftp://46.101.144.81/TDM-GCC-64.7z
+    - 7z x TDM-GCC-64.7z -oc:\
 
     - set PATH="c:\Program Files (x86)\Inno Setup 5";"%GOPATH%\bin";c:\TDM-GCC-64\bin;%PATH%
 
