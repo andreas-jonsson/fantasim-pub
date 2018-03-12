@@ -56,6 +56,7 @@ func main() {
 	flag.StringVar(&serverAddress, "host", "localhost", "Server address.")
 	flag.StringVar(&playerKey, "key", os.Getenv("fantasim_key"), "The player key assigned by the server.")
 	flag.StringVar(&playerName, "name", "Unknown", "The name of the player.")
+	noTimeout := flag.Bool("notimeout", false, "Disable socket timout")
 	flag.Parse()
 
 	if fantasimUrl != "" {
@@ -77,7 +78,11 @@ func main() {
 		log.Fatalln(err)
 	}
 	defer apiWs.Close()
-	apiSocket := newTimeoutReadWriter(apiWs, time.Second*3)
+
+	var apiSocket io.ReadWriter = apiWs
+	if !*noTimeout {
+		apiSocket = newTimeoutReadWriter(apiWs, time.Second*3)
+	}
 
 	infoWs, err := websocket.Dial(fmt.Sprintf("ws://%s/info", serverAddress), "", origin)
 	if err != nil {

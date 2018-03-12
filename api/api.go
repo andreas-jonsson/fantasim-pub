@@ -102,7 +102,8 @@ const (
 type ItemClass uint8
 
 const (
-	PartialItem ItemClass = iota
+	NoItem ItemClass = iota
+	PartialItem
 	LogItem
 	FirewoodItem
 	PlankItem
@@ -158,7 +159,8 @@ func (c ItemClass) String() string {
 type BuildingType uint8
 
 const (
-	StockpileBuilding BuildingType = iota
+	NoBuilding BuildingType = iota
+	StockpileBuilding
 	SawmillBuilding
 	ButcherShoppBuilding
 	FarmBuilding
@@ -176,6 +178,22 @@ func (b BuildingType) String() string {
 		return "Farm"
 	default:
 		panic("invalid building type")
+	}
+}
+
+type StructureType uint8
+
+const (
+	NoStructure StructureType = iota
+	WallStructure
+)
+
+func (s StructureType) String() string {
+	switch s {
+	case WallStructure:
+		return "Wall"
+	default:
+		panic("invalid structure type")
 	}
 }
 
@@ -243,12 +261,14 @@ type ItemViewData struct {
 }
 
 type ReadViewData struct {
-	Flags        TileFlag       `json:"flags"`
-	Height       uint8          `json:"height"`
-	Building     uint64         `json:"building"`
-	BuildingType BuildingType   `json:"building_type"`
-	Units        []UnitViewData `json:"units"`
-	Items        []ItemViewData `json:"items"`
+	Flags             TileFlag       `json:"flags"`
+	Height            uint8          `json:"height"`
+	BuildingType      BuildingType   `json:"building_type"`
+	StructureType     StructureType  `json:"structure_type"`
+	StructureMaterial ItemClass      `json:"structure_material"`
+	Building          uint64         `json:"building"`
+	Units             []UnitViewData `json:"units"`
+	Items             []ItemViewData `json:"items"`
 }
 
 type ReadViewResponse struct {
@@ -335,14 +355,22 @@ type SeedFarmRequest struct {
 
 type SeedFarmResponse Empty
 
-type BuildRequest struct {
+type DesignateRequest struct {
 	Building BuildingType `json:"building"`
 	Location Rect         `json:"location"`
 }
 
-type BuildResponse struct {
+type DesignateResponse struct {
 	Error string `json:"error"`
 }
+
+type BuildRequest struct {
+	Structure StructureType `json:"structure"`
+	Material  ItemClass     `json:"material"`
+	Location  Rect          `json:"location"`
+}
+
+type BuildResponse Empty
 
 var (
 	requestTypeRegistry  = make(map[string]reflect.Type)
@@ -404,6 +432,7 @@ func init() {
 	registerType(responseTypeRegistry, GatherSeedsResponse{})
 
 	register(SeedFarmRequest{}, SeedFarmResponse{})
+	register(DesignateRequest{}, DesignateResponse{})
 }
 
 type (

@@ -467,14 +467,8 @@ func Start(enc api.Encoder, dec, decInfo api.Decoder) error {
 							mp := image.Pt(mousePos.X/8, mousePos.Y/16)
 							mouseWorldPos := cameraPos.Add(image.Pt(int(mX), int(mY)))
 
-							switch {
-							case pickTool != nil:
+							if pickTool != nil {
 								if err := pickTool(enc, mp, mouseWorldPos, viewportSize, rvresp); err != nil {
-									return err
-								}
-							case areaTool != nil:
-								r := image.Rect(areaToolStart.X, areaToolStart.Y, mousePos.X/8, mousePos.Y/16)
-								if err := areaTool(enc, r, cameraPos, viewportSize, rvresp); err != nil {
 									return err
 								}
 							}
@@ -524,6 +518,10 @@ func Start(enc api.Encoder, dec, decInfo api.Decoder) error {
 										contextMenuText = append(contextMenuText, "Building: "+t.BuildingType.String())
 									}
 
+									if t.StructureType != api.NoStructure {
+										contextMenuText = append(contextMenuText, fmt.Sprintf("Structure: %s %s", t.StructureMaterial, t.StructureType))
+									}
+
 									switch {
 									case t.Flags.Is(api.Water):
 										contextMenuText = append(contextMenuText, "Tile: Water")
@@ -561,6 +559,13 @@ func Start(enc api.Encoder, dec, decInfo api.Decoder) error {
 							}
 						}
 					} else {
+						if t.Button == 1 && areaTool != nil {
+							r := image.Rect(areaToolStart.X, areaToolStart.Y, mousePos.X/8, mousePos.Y/16)
+							if err := areaTool(enc, r, cameraPos, viewportSize, rvresp); err != nil {
+								return err
+							}
+						}
+
 						contextMenu = nil
 						contextMenuText = nil
 					}
