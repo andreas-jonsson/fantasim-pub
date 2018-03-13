@@ -28,7 +28,6 @@ import (
 
 func render(backBuffer *image.RGBA, cvr *api.CreateViewRequest, rvresp *api.ReadViewResponse, cameraPos, currentCameraPos image.Point) error {
 	tileReg := tilesetRegister["tiles"]
-	asciiReg := tilesetRegister["ascii"]
 
 	treeBgColor := color.RGBA{R: 155, G: 184, B: 93, A: 0xFF}
 	stoneColor := color.RGBA{R: 128, G: 128, B: 128, A: 0xFF}
@@ -162,8 +161,7 @@ func render(backBuffer *image.RGBA, cvr *api.CreateViewRequest, rvresp *api.Read
 			}
 
 			if tileData.StructureType != api.NoStructure {
-				tile = asciiReg["#"]
-				fg = buildingColors[int(tileData.BuildingType)%len(buildingColors)]
+				tile, fg, bg = structureTile(tileData.StructureType, tileData.StructureMaterial, bg)
 			}
 
 			if tile == nil {
