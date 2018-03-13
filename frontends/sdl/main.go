@@ -34,7 +34,7 @@ import (
 	"time"
 
 	"github.com/andreas-jonsson/fantasim-pub/frontends/common/game"
-	"github.com/andreas-jonsson/fantasim-pub/frontends/sdl/system"
+	sys "github.com/andreas-jonsson/fantasim-pub/frontends/sdl/platform"
 	"golang.org/x/net/websocket"
 )
 
@@ -104,13 +104,13 @@ func main() {
 	decInfo := json.NewDecoder(infoWs)
 
 	sz := image.Pt(1280, 720)
-	sys, err := system.InitSDL(sz, sz, false)
+	s, err := sys.InitSDL(sz, sz, false)
 	if err != nil {
 		log.Fatalln(err)
 	}
-	defer sys.Quit()
+	defer s.Quit()
 
-	if err := game.Initialize(sys, sys); err != nil {
+	if err := game.Initialize(s, s); err != nil {
 		log.Fatalln(err)
 	}
 

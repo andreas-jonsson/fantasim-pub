@@ -29,7 +29,7 @@ import (
 
 	"github.com/andreas-jonsson/fantasim-pub/api"
 	"github.com/andreas-jonsson/fantasim-pub/frontends/common/data"
-	"github.com/andreas-jonsson/fantasim-pub/frontends/common/system"
+	sys "github.com/andreas-jonsson/fantasim-pub/frontends/common/platform"
 	"github.com/ojrac/opensimplex-go"
 )
 
@@ -122,15 +122,26 @@ func buildTilesets() error {
 }
 
 func blitImage(dst *image.RGBA, dp image.Point, src *image.Paletted, fg, bg color.RGBA) {
-	srcImg := *src
-	srcImg.Palette = color.Palette{
-		bg,
-		fg,
-	}
+	sr := src.Bounds()
+	dr := dst.Bounds().Intersect(image.Rectangle{dp, dp.Add(sr.Size())})
+	pal := [2]color.RGBA{bg, fg}
 
-	sr := srcImg.Bounds()
-	dr := image.Rectangle{dp, dp.Add(sr.Size())}
-	draw.Draw(dst, dr, &srcImg, sr.Min, draw.Over)
+	sy := sr.Min.Y
+	for y := dr.Min.Y; y < dr.Max.Y; y++ {
+		sx := sr.Min.X
+		for x := dr.Min.X; x < dr.Max.X; x++ {
+			i := src.PixOffset(sx, sy)
+			col := pal[src.Pix[i]]
+
+			offset := dst.PixOffset(x, y)
+			dst.Pix[offset] = col.R
+			dst.Pix[offset+1] = col.G
+			dst.Pix[offset+2] = col.B
+			dst.Pix[offset+3] = col.A
+			sx++
+		}
+		sy++
+	}
 }
 
 func updateLogWithServerInfo(lines []string) []string {
@@ -235,11 +246,11 @@ func itemTile(it api.ItemClass, bg color.RGBA) (*image.Paletted, color.RGBA, col
 }
 
 var (
-	renderer system.Renderer
-	input    system.Input
+	renderer sys.Renderer
+	input    sys.Input
 )
 
-func Initialize(in system.Input, out system.Renderer) error {
+func Initialize(in sys.Input, out sys.Renderer) error {
 	input = in
 	renderer = out
 	return buildTilesets()
@@ -373,15 +384,15 @@ func Start(enc api.Encoder, dec, decInfo api.Decoder) error {
 		for range time.Tick(time.Second / gameFps) {
 			for ev := input.PollEvent(); ev != nil; ev = input.PollEvent() {
 				switch t := ev.(type) {
-				case *system.QuitEvent:
+				case *sys.QuitEvent:
 					return nil
-				case *system.KeyboardEvent:
-					if t.Type != system.KeyboardDown {
+				case *sys.KeyboardEvent:
+					if t.Type != sys.KeyboardDown {
 						continue
 					}
 
 					switch {
-					case t.Key == system.KeyEsc:
+					case t.Key == sys.KeyEsc:
 						if hasAnyTool() {
 							resetAllTools()
 						} else if logWindow != nil || ctrlWindow != nil {
@@ -396,13 +407,13 @@ func Start(enc api.Encoder, dec, decInfo api.Decoder) error {
 						} else {
 							fmt.Println("Toggle fullscreen:", b)
 						}
-					case t.Name == "a" && t.IsMod(system.KeyModCtrl):
+					case t.Name == "a" && t.IsMod(sys.KeyModCtrl):
 						cameraPos.X -= viewportSize.X
-					case t.Name == "d" && t.IsMod(system.KeyModCtrl):
+					case t.Name == "d" && t.IsMod(sys.KeyModCtrl):
 						cameraPos.X += viewportSize.X
-					case t.Name == "w" && t.IsMod(system.KeyModCtrl):
+					case t.Name == "w" && t.IsMod(sys.KeyModCtrl):
 						cameraPos.Y -= viewportSize.Y
-					case t.Name == "s" && t.IsMod(system.KeyModCtrl):
+					case t.Name == "s" && t.IsMod(sys.KeyModCtrl):
 						cameraPos.Y += viewportSize.Y
 					case t.Name == "l":
 						if logWindow == nil {
@@ -415,7 +426,7 @@ func Start(enc api.Encoder, dec, decInfo api.Decoder) error {
 						} else {
 							logWindow = nil
 						}
-					case t.Key == system.KeySpace:
+					case t.Key == sys.KeySpace:
 						if ctrlWindow == nil {
 							resetAllTools()
 							resetMenuWindow()
@@ -447,7 +458,7 @@ func Start(enc api.Encoder, dec, decInfo api.Decoder) error {
 							}
 						}
 					}
-				case *system.MouseMotionEvent:
+				case *sys.MouseMotionEvent:
 					if t.X >= sz.X {
 						mousePos.X = sz.X - 1
 					} else {
@@ -458,8 +469,8 @@ func Start(enc api.Encoder, dec, decInfo api.Decoder) error {
 					} else {
 						mousePos.Y = t.Y
 					}
-				case *system.MouseButtonEvent:
-					if t.Type == system.MouseButtonDown {
+				case *sys.MouseButtonEvent:
+					if t.Type == sys.MouseButtonDown {
 						switch t.Button {
 						case 1:
 							pX, pY := float64(mousePos.X)/float64(sz.X), float64(mousePos.Y)/float64(sz.Y)
@@ -718,7 +729,7 @@ func Start(enc api.Encoder, dec, decInfo api.Decoder) error {
 		for range time.Tick(time.Second / gameFps) {
 			for ev := input.PollEvent(); ev != nil; ev = input.PollEvent() {
 				switch ev.(type) {
-				case *system.QuitEvent, *system.KeyboardEvent, *system.MouseButtonEvent:
+				case *sys.QuitEvent, *sys.KeyboardEvent, *sys.MouseButtonEvent:
 					return nil
 				}
 			}

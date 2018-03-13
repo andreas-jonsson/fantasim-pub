@@ -24,34 +24,18 @@ import (
 	"errors"
 	"fmt"
 	"image"
-	"image/color"
-	"image/png"
+	"io"
+	"log"
 	"net/url"
 	"strings"
-	"time"
 
-	"github.com/andreas-jonsson/fantasim-pub/api"
-	"github.com/andreas-jonsson/fantasim-pub/frontends/default/data"
-	"github.com/andreas-jonsson/fantasim-pub/frontends/default/renderer"
-
+	"github.com/andreas-jonsson/fantasim-pub/frontends/common/game"
+	sys "github.com/andreas-jonsson/fantasim-pub/frontends/js/platform"
 	"github.com/gopherjs/gopherjs/js"
 	"github.com/gopherjs/websocket"
 )
 
-const fantasimVersionString = "0.0.1"
-
-const (
-	imgWidth  = 320
-	imgHeight = 200
-	imgScale  = 1
-)
-
-var (
-	keys   = map[int]bool{}
-	canvas *js.Object
-
-	playerKey, playerName string
-)
+var playerKey, playerName string
 
 func throw(err error) {
 	js.Global.Call("alert", err.Error())
@@ -64,170 +48,11 @@ func assert(err error) {
 	}
 }
 
-func decodePNG(name string) (*image.Paletted, error) {
-	fp, err := data.FS.Open(name)
-	if err != nil {
-		return nil, err
-	}
-	defer fp.Close()
-
-	img, err := png.Decode(fp)
-	if err != nil {
-		return nil, err
-	}
-
-	pimg, ok := img.(*image.Paletted)
-	if !ok {
-		return nil, fmt.Errorf("%s was not a paletted image", name)
-	}
-
-	return pimg, nil
-}
-
-var tilesetRegister = make(map[string]map[string]*image.Paletted)
-
-func buildTilesets() error {
-	fp, err := data.FS.Open("tiles.json")
-	if err != nil {
-		return err
-	}
-	defer fp.Close()
-
-	var tilesets map[string]struct {
-		Source   string         `json:"source"`
-		TileSize int            `json:"tile_size"`
-		Mapping  map[string]int `json:"mapping"`
-	}
-
-	dec := json.NewDecoder(fp)
-	if err := dec.Decode(&tilesets); err != nil {
-		return err
-	}
-
-	for setName, tileset := range tilesets {
-		img, err := decodePNG(tileset.Source)
-		if err != nil {
-			return err
-		}
-
-		sz := img.Bounds().Size()
-		tileSize := tileset.TileSize
-		numTiles := sz.X / tileSize
-
-		set := make(map[string]*image.Paletted)
-		tilesetRegister[setName] = set
-
-		for tileName, offset := range tileset.Mapping {
-			y := offset / numTiles
-			x := offset % numTiles
-
-			x *= tileSize
-			y *= tileSize
-
-			set[tileName] = img.SubImage(image.Rect(x, y, x+16, y+16)).(*image.Paletted)
-		}
-	}
-
-	return nil
-}
-
-func setupConnection(host string, renderer *renderer.Renderer) {
-	ws, err := websocket.Dial(fmt.Sprintf("ws://%s/api", host))
-	assert(err)
-	defer ws.Close()
-
-	sz := renderer.BackBuffer().Bounds().Size()
-	viewportSize := image.Pt(sz.X/16, sz.Y/16)
-	cameraPos := image.Pt(0, 0)
-
-	enc := json.NewEncoder(ws)
-	dec := json.NewDecoder(ws)
-
-	assert(enc.Encode(&playerKey))
-
-	var version string
-	assert(dec.Decode(&version))
-	if version != fantasimVersionString {
-		throw(fmt.Errorf("invalid version %s, expected %s", version, fantasimVersionString))
-	}
-
-	cvr := api.CreateViewRequest{
-		X: cameraPos.X,
-		Y: cameraPos.Y,
-		W: cameraPos.X + viewportSize.X,
-		H: cameraPos.Y + viewportSize.Y,
-	}
-
-	assert(api.EncodeRequest(enc, &cvr, 0))
-	obj, _, err := api.DecodeResponse(dec)
-	assert(err)
-
-	viewID := obj.(*api.CreateViewResponse).ViewID
-
-	for range time.Tick(time.Second / 15) {
-
-		cameraPos.X++
-		cameraPos.Y++
-
-		uvr := api.UpdateViewRequest{ViewID: viewID, X: cameraPos.X, Y: cameraPos.Y}
-		assert(api.EncodeRequest(enc, &uvr, 0))
-		_, _, err := api.DecodeResponse(dec)
-		assert(err)
-
-		rvr := api.ReadViewRequest{ViewID: viewID}
-		assert(api.EncodeRequest(enc, &rvr, 0))
-		obj, _, err := api.DecodeResponse(dec)
-		assert(err)
-
-		rvresp := obj.(*api.ReadViewResponse)
-		tileReg := tilesetRegister["tiles"]
-
-		treeColor := color.RGBA{G: 0xFF, A: 0xFF}
-		waterColor := color.RGBA{B: 0xFF, A: 0xFF}
-
-		renderer.Clear()
-
-		for y := 0; y < cvr.H; y++ {
-			for x := 0; x < cvr.W; x++ {
-				tileData := rvresp.Data[y*cvr.W+x]
-
-				var (
-					tile   *image.Paletted
-					fg, bg color.RGBA
-				)
-
-				switch tileData.Surface {
-				case "water":
-					tile = tileReg["water"]
-					fg = waterColor
-					bg = color.RGBA{B: tileData.Height, A: 0xFF}
-				case "tree":
-					tile = tileReg["tree"]
-					fg = treeColor
-					bg = color.RGBA{G: tileData.Height, A: 0xFF}
-				case "grass":
-					tile = tileReg["grass"]
-					fg = treeColor
-					bg = color.RGBA{G: tileData.Height, A: 0xFF}
-				default:
-					continue
-				}
-
-				renderer.Blit(image.Pt(x*16, y*16), tile, fg, bg)
-			}
-		}
-
-		renderer.Present()
-	}
-}
-
 func updateTitle() {
-	js.Global.Get("document").Set("title", "Fantasim")
+	js.Global.Get("document").Set("title", "Fantasim JS")
 }
 
 func load() {
-	document := js.Global.Get("document")
-
 	location := js.Global.Get("location")
 	urlStr := strings.TrimPrefix(location.Get("search").String(), "?")
 	v, err := url.ParseQuery(urlStr)
@@ -240,18 +65,50 @@ func load() {
 		throw(errors.New("invalid parameters"))
 	}
 
-	document.Set("onkeydown", func(e *js.Object) {
-		keys[e.Get("keyCode").Int()] = true
-	})
+	serverAddress := v.Get("host")
+	if serverAddress == "" {
+		serverAddress = location.Get("host").String()
+	}
 
-	document.Set("onkeyup", func(e *js.Object) {
-		keys[e.Get("keyCode").Int()] = false
-	})
+	apiWs, err := websocket.Dial(fmt.Sprintf("ws://%s/api", serverAddress))
+	if err != nil {
+		log.Fatalln(err)
+	}
+	defer apiWs.Close()
 
-	renderer := renderer.NewRenderer(640, 360)
+	var apiSocket io.ReadWriter = apiWs
+	//if !*noTimeout {
+	//	apiSocket = newTimeoutReadWriter(apiWs, time.Second*3)
+	//}
 
-	assert(buildTilesets())
-	setupConnection(location.Get("host").String(), renderer)
+	infoWs, err := websocket.Dial(fmt.Sprintf("ws://%s/info", serverAddress))
+	if err != nil {
+		log.Fatalln(err)
+	}
+	defer infoWs.Close()
+
+	if err := json.NewEncoder(io.MultiWriter(apiSocket, infoWs)).Encode(&playerKey); err != nil {
+		log.Fatalln(err)
+	}
+
+	if err := json.NewEncoder(apiSocket).Encode("json"); err != nil {
+		log.Fatalln(err)
+	}
+	enc := json.NewEncoder(apiSocket)
+	dec := json.NewDecoder(apiSocket)
+	decInfo := json.NewDecoder(infoWs)
+
+	s := sys.InitJS(image.Pt(640, 400))
+	defer s.Quit()
+
+	if err := game.Initialize(s, s); err != nil {
+		log.Fatalln(err)
+	}
+
+	updateTitle()
+	if err := game.Start(enc, dec, decInfo); err != nil {
+		log.Fatalln(err)
+	}
 }
 
 func main() {

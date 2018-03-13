@@ -21,7 +21,7 @@ import (
 	"fmt"
 
 	"github.com/andreas-jonsson/fantasim-pub/api"
-	"github.com/andreas-jonsson/fantasim-pub/frontends/common/system"
+	sys "github.com/andreas-jonsson/fantasim-pub/frontends/common/platform"
 )
 
 type menuOption struct {
@@ -237,11 +237,11 @@ func resetMenuWindow() {
 	menuStack = menuStack[:1]
 }
 
-func updateCtrlWindow(ev *system.KeyboardEvent) func(api.Encoder) error {
+func updateCtrlWindow(ev *sys.KeyboardEvent) func(api.Encoder) error {
 	currentMenu := menuStack[len(menuStack)-1]
 
 	ln := len(menuStack)
-	if ln > 1 && ev.Key == system.KeyBackSpace {
+	if ln > 1 && ev.Key == sys.KeyBackSpace {
 		menuStack = menuStack[:ln-1]
 		return nil
 	}

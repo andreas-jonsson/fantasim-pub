@@ -12,9 +12,9 @@ environment:
     GOPATH: c:\gopath
 
 install:
-    - appveyor DownloadFile https://storage.googleapis.com/golang/go1.9.3.windows-amd64.msi
+    - appveyor DownloadFile https://storage.googleapis.com/golang/go1.10.windows-amd64.msi
     
-    - msiexec /i go1.9.3.windows-amd64.msi /q
+    - msiexec /i go1.10.windows-amd64.msi /q
     - 7z x frontends\tools\build\dependencies.7z -ofrontends\tools\package
     - 7z x frontends\tools\build\TDM-GCC-64.7z -oc:\
 
