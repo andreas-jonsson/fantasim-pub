@@ -60,13 +60,14 @@ func InitJS(sz image.Point) *JS {
 	canvas := document.Call("createElement", "canvas")
 	canvas.Call("setAttribute", "width", strconv.Itoa(s.width))
 	canvas.Call("setAttribute", "height", strconv.Itoa(s.height))
+	canvas.Set("imageSmoothingEnabled", false)
 	canvas.Set("oncontextmenu", func(e *js.Object) {
 		e.Call("preventDefault")
 	})
 
 	style := canvas.Get("style")
-	style.Set("width", strconv.Itoa(sz.X)+"px")
-	style.Set("height", strconv.Itoa(sz.Y)+"px")
+	style.Set("width", strconv.Itoa(sz.X*2)+"px")
+	style.Set("height", strconv.Itoa(sz.Y*2)+"px")
 	style.Set("cursor", "none")
 
 	document.Get("body").Call("appendChild", canvas)
