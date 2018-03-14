@@ -74,9 +74,10 @@ func load() {
 	defer infoWs.Close()
 
 	assert(json.NewEncoder(io.MultiWriter(apiSocket, infoWs)).Encode(&playerKey))
-	assert(json.NewEncoder(apiSocket).Encode("json"))
 
 	enc := json.NewEncoder(apiSocket)
+	assert(enc.Encode("json"))
+
 	dec := json.NewDecoder(apiSocket)
 	decInfo := json.NewDecoder(infoWs)
 
