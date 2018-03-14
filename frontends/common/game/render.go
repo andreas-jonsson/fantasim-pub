@@ -200,6 +200,14 @@ func render(backBuffer *image.RGBA, cvr *api.CreateViewRequest, rvresp *api.Read
 				tile, fg, bg = itemTile(tileData.Items[0].Class, bg)
 				blitImage(backBuffer, dp, tile, fg, bg)
 			default:
+				if tileData.UserFlags&api.Territory == 0 {
+					fg.R /= 2
+					fg.G /= 2
+					fg.B /= 2
+					bg.R /= 2
+					bg.G /= 2
+					bg.B /= 2
+				}
 				blitImage(backBuffer, dp, tile, fg, bg)
 			}
 		}

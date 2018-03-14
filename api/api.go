@@ -260,8 +260,16 @@ type ItemViewData struct {
 	Class ItemClass `json:"class"`
 }
 
+type UserFlag uint8
+
+const (
+	Territory UserFlag = 1 << iota
+	Highlight
+)
+
 type ReadViewData struct {
 	Flags             TileFlag       `json:"flags"`
+	UserFlags         UserFlag       `json:"usrflags"`
 	Height            uint8          `json:"height"`
 	BuildingType      BuildingType   `json:"building_type"`
 	StructureType     StructureType  `json:"structure_type"`
