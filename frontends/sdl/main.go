@@ -40,8 +40,6 @@ import (
 
 const lobbyURL = "http://lobby.fantasim.net"
 
-var playerKey, playerName string
-
 func init() {
 	runtime.LockOSThread()
 }
@@ -54,8 +52,7 @@ func main() {
 
 	flag.StringVar(&fantasimUrl, "url", "", "fantasim URL startup.")
 	flag.StringVar(&serverAddress, "host", "localhost", "Server address.")
-	flag.StringVar(&playerKey, "key", os.Getenv("fantasim_key"), "The player key assigned by the server.")
-	flag.StringVar(&playerName, "name", "Unknown", "The name of the player.")
+	playerKey := flag.String("key", os.Getenv("fantasim_key"), "The player key assigned by the server.")
 	noTimeout := flag.Bool("notimeout", false, "Disable socket timout")
 	flag.Parse()
 
@@ -66,8 +63,7 @@ func main() {
 		}
 
 		q := u.Query()
-		playerName = q.Get("name")
-		playerKey = q.Get("key")
+		*playerKey = q.Get("key")
 		serverAddress = u.Host
 	}
 
@@ -91,7 +87,7 @@ func main() {
 	}
 	defer infoWs.Close()
 
-	if err := json.NewEncoder(io.MultiWriter(apiSocket, infoWs)).Encode(&playerKey); err != nil {
+	if err := json.NewEncoder(io.MultiWriter(apiSocket, infoWs)).Encode(playerKey); err != nil {
 		log.Fatalln(err)
 	}
 
@@ -101,7 +97,7 @@ func main() {
 
 	enc := gob.NewEncoder(apiSocket)
 	dec := gob.NewDecoder(apiSocket)
-	decInfo := json.NewDecoder(infoWs)
+	decInfo := gob.NewDecoder(infoWs)
 
 	sz := image.Pt(1280, 720)
 	s, err := sys.InitSDL(sz, sz, false)

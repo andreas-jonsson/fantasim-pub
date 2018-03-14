@@ -34,8 +34,12 @@ import (
 )
 
 const (
-	gameFps               = 15
 	fantasimVersionString = "0.0.1"
+)
+
+var (
+	GameFps    = 30
+	RequestFps = 10
 )
 
 var (
@@ -328,6 +332,7 @@ func Start(enc api.Encoder, dec, decInfo api.Decoder) error {
 	gameMain := func() error {
 		viewportSize := image.Pt(sz.X/16, sz.Y/16)
 		cameraPos := image.Pt(0, 0)
+		lastReadView := time.Now().Add(-time.Second)
 		requestedCameraPos := cameraPos
 		responseCameraPos := cameraPos
 		mousePos := sz.Div(2)
@@ -381,7 +386,7 @@ func Start(enc api.Encoder, dec, decInfo api.Decoder) error {
 			ctrlWindow *window
 		)
 
-		for range time.Tick(time.Second / gameFps) {
+		for range time.Tick(time.Second / time.Duration(GameFps)) {
 			for ev := input.PollEvent(); ev != nil; ev = input.PollEvent() {
 				switch t := ev.(type) {
 				case *sys.QuitEvent:
@@ -599,7 +604,8 @@ func Start(enc api.Encoder, dec, decInfo api.Decoder) error {
 				cameraPos.Y++
 			}
 
-			if readViewRequestID == invalidRequestID {
+			if readViewRequestID == invalidRequestID && time.Since(lastReadView) >= time.Second/time.Duration(RequestFps) {
+				lastReadView = time.Now()
 				requestedCameraPos = cameraPos
 				uvr := api.UpdateViewRequest{ViewID: viewID, X: cameraPos.X, Y: cameraPos.Y}
 
@@ -726,7 +732,7 @@ func Start(enc api.Encoder, dec, decInfo api.Decoder) error {
 		textFgColor = color.RGBA{R: 0xFF, G: 0xFF, B: 0xFF, A: 0xFF}
 		textBgColor = color.RGBA{A: 0xFF}
 
-		for range time.Tick(time.Second / gameFps) {
+		for range time.Tick(time.Second / time.Duration(GameFps)) {
 			for ev := input.PollEvent(); ev != nil; ev = input.PollEvent() {
 				switch ev.(type) {
 				case *sys.QuitEvent, *sys.KeyboardEvent, *sys.MouseButtonEvent:

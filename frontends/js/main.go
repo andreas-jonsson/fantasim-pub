@@ -25,17 +25,16 @@ import (
 	"fmt"
 	"image"
 	"io"
-	"log"
+	"net"
 	"net/url"
 	"strings"
+	"time"
 
 	"github.com/andreas-jonsson/fantasim-pub/frontends/common/game"
 	sys "github.com/andreas-jonsson/fantasim-pub/frontends/js/platform"
 	"github.com/gopherjs/gopherjs/js"
 	"github.com/gopherjs/websocket"
 )
-
-var playerKey, playerName string
 
 func throw(err error) {
 	js.Global.Call("alert", err.Error())
@@ -48,20 +47,14 @@ func assert(err error) {
 	}
 }
 
-func updateTitle() {
-	js.Global.Get("document").Set("title", "Fantasim JS")
-}
-
 func load() {
 	location := js.Global.Get("location")
 	urlStr := strings.TrimPrefix(location.Get("search").String(), "?")
 	v, err := url.ParseQuery(urlStr)
 	assert(err)
 
-	playerKey = v.Get("key")
-	playerName = v.Get("name")
-
-	if playerKey == "" || playerName == "" {
+	playerKey := v.Get("key")
+	if playerKey == "" {
 		throw(errors.New("invalid parameters"))
 	}
 
@@ -71,29 +64,18 @@ func load() {
 	}
 
 	apiWs, err := websocket.Dial(fmt.Sprintf("ws://%s/api", serverAddress))
-	if err != nil {
-		log.Fatalln(err)
-	}
+	assert(err)
 	defer apiWs.Close()
 
-	var apiSocket io.ReadWriter = apiWs
-	//if !*noTimeout {
-	//	apiSocket = newTimeoutReadWriter(apiWs, time.Second*3)
-	//}
+	apiSocket := newTimeoutReadWriter(apiWs, time.Second*3)
 
 	infoWs, err := websocket.Dial(fmt.Sprintf("ws://%s/info", serverAddress))
-	if err != nil {
-		log.Fatalln(err)
-	}
+	assert(err)
 	defer infoWs.Close()
 
-	if err := json.NewEncoder(io.MultiWriter(apiSocket, infoWs)).Encode(&playerKey); err != nil {
-		log.Fatalln(err)
-	}
+	assert(json.NewEncoder(io.MultiWriter(apiSocket, infoWs)).Encode(&playerKey))
+	assert(json.NewEncoder(apiSocket).Encode("json"))
 
-	if err := json.NewEncoder(apiSocket).Encode("json"); err != nil {
-		log.Fatalln(err)
-	}
 	enc := json.NewEncoder(apiSocket)
 	dec := json.NewDecoder(apiSocket)
 	decInfo := json.NewDecoder(infoWs)
@@ -101,16 +83,38 @@ func load() {
 	s := sys.InitJS(image.Pt(640, 400))
 	defer s.Quit()
 
-	if err := game.Initialize(s, s); err != nil {
-		log.Fatalln(err)
-	}
+	// Clear screen at exit
+	defer s.Present(image.NewRGBA(image.Rectangle{Max: s.Resolution()}))
 
-	updateTitle()
-	if err := game.Start(enc, dec, decInfo); err != nil {
-		log.Fatalln(err)
-	}
+	game.GameFps = 15
+	game.RequestFps = 1
+
+	assert(game.Initialize(s, s))
+	js.Global.Get("document").Set("title", "Fantasim JS")
+	assert(game.Start(enc, dec, decInfo))
 }
 
 func main() {
 	js.Global.Call("addEventListener", "load", func() { go load() })
+}
+
+type TimeoutReadWriter struct {
+	conn net.Conn
+	t    time.Duration
+}
+
+func newTimeoutReadWriter(conn net.Conn, timeout time.Duration) io.ReadWriter {
+	return &TimeoutReadWriter{conn, timeout}
+}
+
+func (trw *TimeoutReadWriter) Read(p []byte) (int, error) {
+	conn := trw.conn
+	conn.SetReadDeadline(time.Now().Add(trw.t))
+	return conn.Read(p)
+}
+
+func (trw *TimeoutReadWriter) Write(b []byte) (int, error) {
+	conn := trw.conn
+	conn.SetWriteDeadline(time.Now().Add(trw.t))
+	return conn.Write(b)
 }
