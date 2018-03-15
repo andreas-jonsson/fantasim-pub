@@ -615,7 +615,7 @@ func Start(enc api.Encoder, dec, decInfo api.Decoder) error {
 				}
 				discardResponse(id)
 
-				rvr := api.ReadViewRequest{ViewID: viewID}
+				rvr := api.ReadViewRequest{ViewID: viewID, RLE: true}
 				readViewRequestID, err = encodeRequest(enc, &rvr)
 				if err != nil {
 					return err

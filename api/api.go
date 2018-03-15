@@ -41,6 +41,13 @@ func (flags TileFlag) Is(f TileFlag) bool {
 	return flags&f != 0
 }
 
+type UserFlag uint8
+
+const (
+	Territory UserFlag = 1 << iota
+	Highlight
+)
+
 type Allegiance uint8
 
 const (
@@ -244,45 +251,6 @@ type UpdateViewRequest struct {
 
 type UpdateViewResponse Empty
 
-type ReadViewRequest struct {
-	ViewID int `json:"view_id"`
-}
-
-type UnitViewData struct {
-	ID         uint64     `json:"unit_id"`
-	Allegiance Allegiance `json:"allegiance"`
-	Race       UnitRace   `json:"race"`
-	Class      UnitClass  `json:"class"`
-}
-
-type ItemViewData struct {
-	ID    uint64    `json:"item_id"`
-	Class ItemClass `json:"class"`
-}
-
-type UserFlag uint8
-
-const (
-	Territory UserFlag = 1 << iota
-	Highlight
-)
-
-type ReadViewData struct {
-	Flags             TileFlag       `json:"flags"`
-	UserFlags         UserFlag       `json:"usrflags"`
-	Height            uint8          `json:"height"`
-	BuildingType      BuildingType   `json:"building_type"`
-	StructureType     StructureType  `json:"structure_type"`
-	StructureMaterial ItemClass      `json:"structure_material"`
-	Building          uint64         `json:"building"`
-	Units             []UnitViewData `json:"units"`
-	Items             []ItemViewData `json:"items"`
-}
-
-type ReadViewResponse struct {
-	Data []ReadViewData `json:"data"`
-}
-
 type DebugCommandRequest struct {
 	Command string `json:"command"`
 }
@@ -402,6 +370,13 @@ func registerType(m map[string]reflect.Type, v interface{}) {
 func register(req, resp interface{}) {
 	registerType(requestTypeRegistry, req)
 	registerType(responseTypeRegistry, resp)
+}
+
+func RegisterHandler(reqName string, req interface{}, respName string, resp interface{}) {
+	_, t := getTypeName(req)
+	requestTypeRegistry[reqName] = t
+	_, t = getTypeName(resp)
+	responseTypeRegistry[respName] = t
 }
 
 func init() {

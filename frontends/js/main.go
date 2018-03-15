@@ -20,11 +20,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 package main
 
 import (
+	"encoding/gob"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"image"
 	"io"
+	"log"
 	"net"
 	"net/url"
 	"strings"
@@ -75,11 +77,13 @@ func load() {
 
 	assert(json.NewEncoder(io.MultiWriter(apiSocket, infoWs)).Encode(&playerKey))
 
-	enc := json.NewEncoder(apiSocket)
-	assert(enc.Encode("json"))
+	if err := json.NewEncoder(apiSocket).Encode("gob"); err != nil {
+		log.Fatalln(err)
+	}
 
-	dec := json.NewDecoder(apiSocket)
-	decInfo := json.NewDecoder(infoWs)
+	enc := gob.NewEncoder(apiSocket)
+	dec := gob.NewDecoder(apiSocket)
+	decInfo := gob.NewDecoder(infoWs)
 
 	s := sys.InitJS(image.Pt(640, 400))
 	defer s.Quit()
