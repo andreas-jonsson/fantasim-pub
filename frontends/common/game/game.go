@@ -338,6 +338,7 @@ func Start(enc api.Encoder, dec, decInfo api.Decoder) error {
 		mousePos := sz.Div(2)
 		logUpdated := time.Now()
 		logSize := 0
+		renderHeight := false
 
 		cvr := api.CreateViewRequest{
 			X: cameraPos.X,
@@ -412,6 +413,8 @@ func Start(enc api.Encoder, dec, decInfo api.Decoder) error {
 						} else {
 							fmt.Println("Toggle fullscreen:", b)
 						}
+					case t.Name == "left shift" || t.Name == "right shift":
+						renderHeight = !renderHeight
 					case t.Name == "a" && t.IsMod(sys.KeyModCtrl):
 						cameraPos.X -= viewportSize.X
 					case t.Name == "d" && t.IsMod(sys.KeyModCtrl):
@@ -629,7 +632,7 @@ func Start(enc api.Encoder, dec, decInfo api.Decoder) error {
 			}
 
 			if rvresp != nil {
-				render(backBuffer, &cvr, rvresp, responseCameraPos, cameraPos)
+				render(backBuffer, &cvr, rvresp, responseCameraPos, cameraPos, renderHeight)
 			}
 
 			if areaTool != nil {

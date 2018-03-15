@@ -21,19 +21,39 @@ import (
 	"image"
 	"image/color"
 	"log"
+	"math"
 	"time"
 
 	"github.com/andreas-jonsson/fantasim-pub/api"
 )
 
-func render(backBuffer *image.RGBA, cvr *api.CreateViewRequest, rvresp *api.ReadViewResponse, cameraPos, currentCameraPos image.Point) error {
+var viewMaxHeight float64 = 1
+
+func render(backBuffer *image.RGBA, cvr *api.CreateViewRequest, rvresp *api.ReadViewResponse, cameraPos, currentCameraPos image.Point, heightOnly bool) error {
 	tileReg := tilesetRegister["tiles"]
+	var heightTiles []*image.Paletted
+
+	if heightOnly {
+		heightTiles = []*image.Paletted{
+			tilesetRegister["ascii"]["0"],
+			tilesetRegister["ascii"]["1"],
+			tilesetRegister["ascii"]["2"],
+			tilesetRegister["ascii"]["3"],
+			tilesetRegister["ascii"]["4"],
+			tilesetRegister["ascii"]["5"],
+			tilesetRegister["ascii"]["6"],
+			tilesetRegister["ascii"]["7"],
+			tilesetRegister["ascii"]["8"],
+			tilesetRegister["ascii"]["9"],
+		}
+	}
 
 	treeBgColor := color.RGBA{R: 155, G: 184, B: 93, A: 0xFF}
 	stoneColor := color.RGBA{R: 128, G: 128, B: 128, A: 0xFF}
 	brookColor := color.RGBA{R: 45, G: 169, B: 220, A: 0xFF}
 	waterColor := color.RGBA{R: 15, G: 119, B: 255, A: 0xFF}
 	waterBgColor := color.RGBA{R: 15, G: 215, B: 255, A: 0xFF}
+	whiteColor := color.RGBA{R: 0xFF, G: 0xFF, B: 0xFF, A: 0xFF}
 
 	treeColor := func(x, y int) color.RGBA {
 		if noise.Eval2(float64(x), float64(y)) > 0 {
@@ -81,7 +101,18 @@ func render(backBuffer *image.RGBA, cvr *api.CreateViewRequest, rvresp *api.Read
 		return rvresp.Data[y*cvr.W+x]
 	}
 
+	scaleColor := func(c color.RGBA, s float64) color.RGBA {
+		s = math.Min(math.Max(s, 0), 1)
+		return color.RGBA{
+			R: uint8(float64(c.R) * s),
+			G: uint8(float64(c.G) * s),
+			B: uint8(float64(c.B) * s),
+			A: 0xFF,
+		}
+	}
+
 	cameraOffset := currentCameraPos.Sub(cameraPos)
+	currentViewMax := float64(1)
 
 	for y := 0; y < cvr.H; y++ {
 		for x := 0; x < cvr.W; x++ {
@@ -90,6 +121,7 @@ func render(backBuffer *image.RGBA, cvr *api.CreateViewRequest, rvresp *api.Read
 			wx := x + cameraPos.X
 			wy := y + cameraPos.Y
 			dp := image.Pt((x-cameraOffset.X)*16, (y-cameraOffset.Y)*16)
+			currentViewMax = math.Max(currentViewMax, float64(tileData.Height))
 
 			var (
 				tile *image.Paletted
@@ -199,6 +231,11 @@ func render(backBuffer *image.RGBA, cvr *api.CreateViewRequest, rvresp *api.Read
 			case numItems > 0:
 				tile, fg, bg = itemTile(tileData.Items[0].Class, bg)
 				blitImage(backBuffer, dp, tile, fg, bg)
+			case heightOnly:
+				h := float64(tileData.Height)
+				h = h / math.Max(viewMaxHeight, h)
+				tile = heightTiles[int(9.0*h)]
+				blitImage(backBuffer, dp, tile, scaleColor(whiteColor, h), bg)
 			default:
 				if tileData.UserFlags&api.Territory == 0 {
 					fg.R /= 2
@@ -212,6 +249,8 @@ func render(backBuffer *image.RGBA, cvr *api.CreateViewRequest, rvresp *api.Read
 			}
 		}
 	}
+
+	viewMaxHeight = currentViewMax
 
 	return nil
 }
