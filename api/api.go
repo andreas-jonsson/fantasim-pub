@@ -45,7 +45,6 @@ type UserFlag uint8
 
 const (
 	Territory UserFlag = 1 << iota
-	Highlight
 )
 
 type Allegiance uint8
@@ -348,6 +347,12 @@ type BuildRequest struct {
 
 type BuildResponse Empty
 
+type HighlightRequest Empty
+
+type HighlightResponse struct {
+	Highlight []Point `json:"highlight"`
+}
+
 var (
 	requestTypeRegistry  = make(map[string]reflect.Type)
 	responseTypeRegistry = make(map[string]reflect.Type)
@@ -367,7 +372,7 @@ func registerType(m map[string]reflect.Type, v interface{}) {
 	m[n] = t
 }
 
-func register(req, resp interface{}) {
+func Register(req, resp interface{}) {
 	registerType(requestTypeRegistry, req)
 	registerType(responseTypeRegistry, resp)
 }
@@ -414,8 +419,9 @@ func init() {
 	registerType(responseTypeRegistry, AttackUnitsResponse{})
 	registerType(responseTypeRegistry, GatherSeedsResponse{})
 
-	register(SeedFarmRequest{}, SeedFarmResponse{})
-	register(DesignateRequest{}, DesignateResponse{})
+	Register(SeedFarmRequest{}, SeedFarmResponse{})
+	Register(DesignateRequest{}, DesignateResponse{})
+	Register(HighlightRequest{}, HighlightResponse{})
 }
 
 type (

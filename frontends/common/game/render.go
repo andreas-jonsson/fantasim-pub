@@ -27,7 +27,10 @@ import (
 	"github.com/andreas-jonsson/fantasim-pub/api"
 )
 
-var viewMaxHeight float64 = 1
+var (
+	viewMaxHeight float64 = 1
+	highlights    []api.Point
+)
 
 func render(backBuffer *image.RGBA, cvr *api.CreateViewRequest, rvresp *api.ReadViewResponse, cameraPos, currentCameraPos image.Point, heightOnly bool) error {
 	tileReg := tilesetRegister["tiles"]
@@ -102,11 +105,10 @@ func render(backBuffer *image.RGBA, cvr *api.CreateViewRequest, rvresp *api.Read
 	}
 
 	scaleColor := func(c color.RGBA, s float64) color.RGBA {
-		s = math.Min(math.Max(s, 0), 1)
 		return color.RGBA{
-			R: uint8(float64(c.R) * s),
-			G: uint8(float64(c.G) * s),
-			B: uint8(float64(c.B) * s),
+			R: uint8(math.Min(float64(c.R)*s, 255.0)),
+			G: uint8(math.Min(float64(c.G)*s, 255.0)),
+			B: uint8(math.Min(float64(c.B)*s, 255.0)),
 			A: 0xFF,
 		}
 	}
@@ -116,6 +118,15 @@ func render(backBuffer *image.RGBA, cvr *api.CreateViewRequest, rvresp *api.Read
 
 	for y := 0; y < cvr.H; y++ {
 		for x := 0; x < cvr.W; x++ {
+
+			tileIsHighlighted := false
+			for _, hl := range highlights {
+				p := api.Point{x + cameraPos.X, y + cameraPos.Y}
+				if p == hl {
+					tileIsHighlighted = true
+					break
+				}
+			}
 
 			tileData := index(x, y)
 			wx := x + cameraPos.X
@@ -244,7 +255,11 @@ func render(backBuffer *image.RGBA, cvr *api.CreateViewRequest, rvresp *api.Read
 					bg.R /= 2
 					bg.G /= 2
 					bg.B /= 2
+				} else if tileIsHighlighted {
+					fg = scaleColor(fg, 2)
+					bg = scaleColor(bg, 2)
 				}
+
 				blitImage(backBuffer, dp, tile, fg, bg)
 			}
 		}

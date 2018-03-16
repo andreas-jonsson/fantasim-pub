@@ -333,6 +333,7 @@ func Start(enc api.Encoder, dec, decInfo api.Decoder) error {
 		viewportSize := image.Pt(sz.X/16, sz.Y/16)
 		cameraPos := image.Pt(0, 0)
 		lastReadView := time.Now().Add(-time.Second)
+		lastHighlightRequest := lastReadView
 		requestedCameraPos := cameraPos
 		responseCameraPos := cameraPos
 		mousePos := sz.Div(2)
@@ -605,6 +606,21 @@ func Start(enc api.Encoder, dec, decInfo api.Decoder) error {
 				cameraPos.Y--
 			} else if mousePos.Y > sz.Y-screenEdgeY {
 				cameraPos.Y++
+			}
+
+			if time.Since(lastHighlightRequest) > time.Second*2 {
+				lastHighlightRequest = time.Now()
+
+				id, err := encodeRequest(enc, &api.HighlightRequest{})
+				if err != nil {
+					return err
+				}
+
+				resp, err := decodeResponse(id)
+				if err != nil {
+					return err
+				}
+				highlights = resp.(*api.HighlightResponse).Highlight
 			}
 
 			if readViewRequestID == invalidRequestID && time.Since(lastReadView) >= time.Second/time.Duration(RequestFps) {
