@@ -28,8 +28,9 @@ import (
 )
 
 var (
-	viewMaxHeight float64 = 1
-	highlights    []api.Point
+	viewMaxHeight    float64 = 1
+	updateHighlights bool
+	highlights       []api.Point
 )
 
 func render(backBuffer *image.RGBA, cvr *api.CreateViewRequest, rvresp *api.ReadViewResponse, cameraPos, currentCameraPos image.Point, heightOnly bool) error {

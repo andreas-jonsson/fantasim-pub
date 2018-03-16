@@ -37,6 +37,7 @@ func resetAllTools() {
 	areaTool = nil
 	pickTool = nil
 	moveCameraTool = nil
+	updateHighlights = true
 }
 
 func hasAnyTool() bool {

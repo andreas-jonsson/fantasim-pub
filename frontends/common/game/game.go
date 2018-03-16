@@ -608,8 +608,9 @@ func Start(enc api.Encoder, dec, decInfo api.Decoder) error {
 				cameraPos.Y++
 			}
 
-			if time.Since(lastHighlightRequest) > time.Second*2 {
+			if updateHighlights || time.Since(lastHighlightRequest) > time.Second*2 {
 				lastHighlightRequest = time.Now()
+				updateHighlights = false
 
 				id, err := encodeRequest(enc, &api.HighlightRequest{})
 				if err != nil {
