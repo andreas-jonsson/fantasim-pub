@@ -6,6 +6,8 @@ description: |
 
 grade: devel
 confinement: devmode
+architectures:
+  - amd64
 
 parts:
   go:
@@ -26,7 +28,7 @@ parts:
     go-importpath: github.com/andreas-jonsson/fantasim-pub
     go-packages: ['github.com/andreas-jonsson/fantasim-pub/frontends/sdl']
     build-packages:
-      - autoconf
+      - pkg-config
     #stage-packages:
     #  - libsdl2-dev
 

@@ -4,6 +4,11 @@
 *.so
 *.dylib
 
+stage
+parts
+prime
+snap
+
 # Test binary, build with `go test -c`
 *.test
 
