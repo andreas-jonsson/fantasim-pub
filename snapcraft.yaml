@@ -6,7 +6,6 @@ description: |
 
 grade: devel
 confinement: devmode
-architectures: [amd64]
 
 parts:
   #go:
@@ -22,13 +21,17 @@ parts:
       - bin/fantasim-sdl
     organize:
       bin/sdl: bin/fantasim-sdl
-    source: .
+    source:
+      - on amd64: .
+      - else fail
     plugin: go
     go-importpath: github.com/andreas-jonsson/fantasim-pub
     go-packages: [github.com/andreas-jonsson/fantasim-pub/frontends/sdl]
     build-packages:
       - pkg-config
       - libsdl2-dev
+    stage-packages:
+      - libsdl2-2.0-0
 
 apps:
   fantasim-sdl:

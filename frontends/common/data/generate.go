@@ -44,7 +44,11 @@ func main() {
 		log.Fatalln(err)
 	}
 
-	if err := ioutil.WriteFile(outputFile, []byte(strings.Replace(string(data), "vfsgen۰", "vfsgen_", -1)), 0644); err != nil {
+	dataStr := strings.Replace(string(data), "vfsgen۰", "vfsgen_", -1)
+	dataStr = strings.Replace(dataStr, "io.SeekStart", "os.SEEK_SET", -1)
+	dataStr = strings.Replace(dataStr, "io.SeekCurrent", "os.SEEK_CUR", -1)
+
+	if err := ioutil.WriteFile(outputFile, []byte(strings.Replace(dataStr, "io.SeekEnd", "os.SEEK_END", -1)), 0644); err != nil {
 		log.Fatalln(err)
 	}
 }
