@@ -6,13 +6,12 @@ description: |
 
 grade: devel
 confinement: devmode
-architectures:
-  - amd64
+architectures: [amd64]
 
 parts:
-  go:
-    source-tag: go1.10
-    source-depth: 1
+  #go:
+  #  source-tag: go1.10
+  #  source-depth: 1
 
   desktop:
     source: frontends/tools/package/snap/
@@ -26,11 +25,10 @@ parts:
     source: .
     plugin: go
     go-importpath: github.com/andreas-jonsson/fantasim-pub
-    go-packages: ['github.com/andreas-jonsson/fantasim-pub/frontends/sdl']
+    go-packages: [github.com/andreas-jonsson/fantasim-pub/frontends/sdl]
     build-packages:
       - pkg-config
-    #stage-packages:
-    #  - libsdl2-dev
+      - libsdl2-dev
 
 apps:
   fantasim-sdl:
