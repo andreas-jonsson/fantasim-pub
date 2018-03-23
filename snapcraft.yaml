@@ -21,9 +21,7 @@ parts:
       - bin/fantasim-sdl
     organize:
       bin/sdl: bin/fantasim-sdl
-    source:
-      - on amd64: .
-      - else fail
+    source: .
     plugin: go
     go-importpath: github.com/andreas-jonsson/fantasim-pub
     go-packages: [github.com/andreas-jonsson/fantasim-pub/frontends/sdl]
