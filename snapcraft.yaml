@@ -25,6 +25,8 @@ parts:
     plugin: go
     go-importpath: github.com/andreas-jonsson/fantasim-pub
     go-packages: ['github.com/andreas-jonsson/fantasim-pub/frontends/sdl']
+    build-packages:
+      - autoconf
     #stage-packages:
     #  - libsdl2-dev
 
