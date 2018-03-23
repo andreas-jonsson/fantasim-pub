@@ -1,0 +1,33 @@
+name: fantasim-sdl
+version: git
+summary: Fantasim-SDL frontend.
+description: |
+  Fantasim is a fantasy world simulator game similar to Dwarf Fortress and Goblin Camp.
+
+grade: devel
+confinement: devmode
+
+parts:
+  go:
+    source-tag: go1.10
+    source-depth: 1
+
+  desktop:
+    source: frontends/tools/package/snap/
+    plugin: dump
+
+  fantasim-sdl:
+    stage:
+      - bin/fantasim-sdl
+    organize:
+      bin/sdl: bin/fantasim-sdl
+    source: .
+    plugin: go
+    go-importpath: github.com/andreas-jonsson/fantasim-pub
+    go-packages: ['github.com/andreas-jonsson/fantasim-pub/frontends/sdl']
+    #stage-packages:
+    #  - libsdl2-dev
+
+apps:
+  fantasim-sdl:
+    command: bin/fantasim-sdl
