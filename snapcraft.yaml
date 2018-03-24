@@ -28,9 +28,9 @@ parts:
     build-packages:
       - pkg-config
       - libsdl2-dev
-    stage-packages:
-      - libsdl2-2.0-0
 
 apps:
   fantasim-sdl:
     command: bin/fantasim-sdl
+    environment:
+      LD_LIBRARY_PATH: $LD_LIBRARY_PATH:$SNAP/usr/lib/x86_64-linux-gnu:$SNAP/usr/lib/x86_64-linux-gnu/pulseaudio
