@@ -1,6 +1,6 @@
-name: fantasim-sdl
+name: fantasim
 version: git
-summary: Fantasim-SDL frontend.
+summary: Fantasim
 description: |
   Fantasim is a fantasy world simulator game similar to Dwarf Fortress and Goblin Camp.
 
@@ -9,25 +9,25 @@ confinement: devmode
 
 parts:
   desktop:
-    source: frontends/tools/package/fantasim-sdl.snap/
+    source: frontends/tools/package/fantasim.snap/
     plugin: dump
 
   fantasim-sdl:
     stage:
-      - bin/fantasim-sdl
-    organize:
-      bin/sdl: bin/fantasim-sdl
+      - bin/fantasim
+    #organize:
+    #  bin/sdl: bin/fantasim
     source: .
     plugin: go
-    go-importpath: github.com/andreas-jonsson/fantasim-pub
-    go-packages: [github.com/andreas-jonsson/fantasim-pub/frontends/sdl]
-    build-packages:
-      - pkg-config
-      - libsdl2-dev
+    go-importpath: github.com/andreas-jonsson/fantasim
+    #go-packages: [github.com/andreas-jonsson/fantasim]
+    #build-packages:
+    #  - pkg-config
+    #  - libsdl2-dev
 
 apps:
-  fantasim-sdl:
-    command: bin/fantasim-sdl
-    desktop: usr/share/applications/fantasim-sdl.desktop
-    environment:
-      LD_LIBRARY_PATH: $LD_LIBRARY_PATH:$SNAP/usr/lib/x86_64-linux-gnu:$SNAP/usr/lib/x86_64-linux-gnu/pulseaudio
+  fantasim:
+    command: bin/fantasim
+    desktop: usr/share/applications/fantasim.desktop
+    #environment:
+    #  LD_LIBRARY_PATH: $LD_LIBRARY_PATH:$SNAP/usr/lib/x86_64-linux-gnu:$SNAP/usr/lib/x86_64-linux-gnu/pulseaudio
