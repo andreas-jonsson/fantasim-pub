@@ -8,12 +8,8 @@ grade: devel
 confinement: devmode
 
 parts:
-  #go:
-  #  source-tag: go1.10
-  #  source-depth: 1
-
   desktop:
-    source: frontends/tools/package/snap/
+    source: frontends/tools/package/fantasim-sdl.snap/
     plugin: dump
 
   fantasim-sdl:
