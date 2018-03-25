@@ -9,7 +9,7 @@ confinement: devmode
 
 parts:
   desktop:
-    source: frontends/tools/package/fantasim.snap/
+    source: frontends/tools/package/fantasim_snap/
     plugin: dump
 
   fantasim-sdl:
