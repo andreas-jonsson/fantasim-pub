@@ -1,7 +1,7 @@
 [Desktop Entry]
 Name=Fantasim-SDL
 Exec=/usr/local/bin/fantasim-sdl -url=%u
-Icon=/usr/local/share/fantasim-sdl/icon512x512.png
+Icon=/usr/local/share/fantasim-sdl/icon256x256.png
 Type=Application
 Terminal=false
 Categories=Game;

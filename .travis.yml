@@ -18,7 +18,7 @@ install:
     - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install dylibbundler; fi
     - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get install -y rpl; fi
 
-    - "./frontends/tools/sdl_from_source.sh"
+    - ./frontends/tools/sdl_from_source.sh
 
 script:
     - cd frontends/sdl
@@ -27,11 +27,12 @@ script:
     - cd ../../
 
     - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then ./frontends/tools/package/build_app.sh; fi
-    - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then ./frontends/tools/package/build_deb.sh; fi
+    #- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then ./frontends/tools/package/build_deb.sh; fi
 
 before_deploy:
     - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then export FINAL_PACKAGE=fantasim-sdl_osx.zip; fi
-    - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then export FINAL_PACKAGE=fantasim-sdl_linux.deb; fi
+    #- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then export FINAL_PACKAGE=fantasim-sdl_linux.deb; fi
+    - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then export FINAL_PACKAGE=./frontends/tools/package/fantasim-sdl_linux.snap.html; fi
 
 deploy:
     provider: releases
