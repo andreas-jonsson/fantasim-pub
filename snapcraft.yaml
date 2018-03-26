@@ -1,7 +1,7 @@
 name: fantasim-sdl
 version: git
 summary: Fantasim-SDL frontend.
-icon: frontends/tools/package/fantasim-sdl.snap/usr/local/share/fantasim-sdl/icon256x256.png
+#icon: frontends/tools/package/fantasim-sdl.snap/usr/local/share/fantasim-sdl/icon256x256.png
 description: |
   Fantasim is a fantasy world simulator game similar to Dwarf Fortress and Goblin Camp.
 
