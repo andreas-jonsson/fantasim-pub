@@ -19,4 +19,4 @@ snap
 .glide/
 frontends/sdl/debug
 frontends/js/main.js.map
-*.snap
+./*.snap
