@@ -5,7 +5,7 @@ description: |
   Fantasim is a fantasy world simulator game similar to Dwarf Fortress and Goblin Camp.
 
 grade: devel
-confinement: devmode
+confinement: classic
 
 parts:
   desktop:
