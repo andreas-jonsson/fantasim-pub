@@ -67,6 +67,15 @@ func InitSDL(windowSize, resolution image.Point, fullscreen bool) (*SDL, error) 
 		return nil, err
 	}
 
+	fmt.Println("Video drivers:")
+	if num, err := sdl.GetNumRenderDrivers(); err == nil {
+		for i := 0; i < num; i++ {
+			var info sdl.RendererInfo
+			sdl.GetRenderDriverInfo(i, &info)
+			fmt.Println(info.Name)
+		}
+	}
+
 	renderer, err := sdl.CreateRenderer(window, -1, sdl.RENDERER_ACCELERATED)
 	if err != nil {
 		sdl.Quit()
