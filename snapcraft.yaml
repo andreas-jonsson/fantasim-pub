@@ -30,6 +30,7 @@ parts:
     build-packages:
       - pkg-config
       - libsdl2-dev
+      - mesa-common-dev
 
 apps:
   fantasim-sdl:
