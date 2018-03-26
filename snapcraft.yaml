@@ -22,11 +22,6 @@ parts:
     plugin: go
     go-importpath: github.com/andreas-jonsson/fantasim-pub
     go-packages: [github.com/andreas-jonsson/fantasim-pub/frontends/sdl]
-    plugs:
-      - network
-      - opengl
-      - x11
-      - wayland
     build-packages:
       - pkg-config
       - libsdl2-dev
@@ -36,5 +31,6 @@ apps:
   fantasim-sdl:
     command: bin/fantasim-sdl
     desktop: usr/share/applications/fantasim-sdl.desktop
+    plugs: [network, opengl, x11, wayland]
     environment:
       LD_LIBRARY_PATH: $LD_LIBRARY_PATH:$SNAP/usr/lib/x86_64-linux-gnu:$SNAP/usr/lib/x86_64-linux-gnu/pulseaudio
