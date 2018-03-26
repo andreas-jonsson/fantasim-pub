@@ -6,7 +6,7 @@ description: |
   Fantasim is a fantasy world simulator game similar to Dwarf Fortress and Goblin Camp.
 
 grade: devel
-confinement: classic
+confinement: strict
 
 parts:
   desktop:
@@ -22,6 +22,11 @@ parts:
     plugin: go
     go-importpath: github.com/andreas-jonsson/fantasim-pub
     go-packages: [github.com/andreas-jonsson/fantasim-pub/frontends/sdl]
+    plugs:
+      - network
+      - opengl
+      - x11
+      - wayland
     build-packages:
       - pkg-config
       - libsdl2-dev
