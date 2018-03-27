@@ -22,15 +22,13 @@ parts:
     plugin: go
     go-importpath: github.com/andreas-jonsson/fantasim-pub
     go-packages: [github.com/andreas-jonsson/fantasim-pub/frontends/sdl]
-    build-packages:
-      - pkg-config
-      - libsdl2-dev
-      - mesa-common-dev
+    build-packages: [pkg-config, libsdl2-dev]
+    #stage-packages: [libgl1-mesa-dri, libgl1-mesa-glx, libx11-6]
 
 apps:
   fantasim-sdl:
     command: bin/fantasim-sdl
     desktop: usr/share/applications/fantasim-sdl.desktop
-    plugs: [network, opengl, x11, wayland]
+    plugs: [network, opengl, x11]
     environment:
       LD_LIBRARY_PATH: $LD_LIBRARY_PATH:$SNAP/lib/x86_64-linux-gnu:$SNAP/usr/lib/x86_64-linux-gnu:$SNAP/usr/lib/x86_64-linux-gnu/pulseaudio
