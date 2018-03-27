@@ -13,6 +13,14 @@ parts:
     source: frontends/tools/package/fantasim-sdl.snap/
     plugin: dump
 
+  snapd-xdg-open:
+    source: https://github.com/ubuntu-core/snapd-xdg-open.git
+    plugin: copy
+    files:
+      data/xdg-open: bin/xdg-open
+    stage-packages:
+      - dbus
+
   fantasim-sdl:
     stage:
       - bin/fantasim-sdl
