@@ -136,7 +136,7 @@ func (trw *TimeoutReadWriter) Write(b []byte) (int, error) {
 	return conn.Write(b)
 }
 
-func open(url string) error {
+func open(url string) {
 	var (
 		cmd  string
 		args []string
@@ -152,5 +152,7 @@ func open(url string) error {
 		cmd = "xdg-open"
 	}
 
-	return exec.Command(cmd, append(args, url)...).Start()
+	if err := exec.Command(cmd, append(args, url)...).Start(); err != nil {
+		log.Println(err)
+	}
 }
