@@ -365,7 +365,7 @@ func Start(enc api.Encoder, dec, decInfo api.Decoder) error {
 
 		viewID := obj.(*api.CreateViewResponse).ViewID
 
-		if gameType != api.Observer {
+		if gameType == api.Civilisation {
 			id, err = encodeRequest(enc, &api.ViewHomeRequest{viewID})
 			if err != nil {
 				return err
@@ -442,7 +442,7 @@ func Start(enc api.Encoder, dec, decInfo api.Decoder) error {
 						} else {
 							logWindow = nil
 						}
-					case gameType != api.Observer && t.Key == sys.KeySpace:
+					case gameType == api.Civilisation && t.Key == sys.KeySpace:
 						if ctrlWindow == nil {
 							resetAllTools()
 							resetMenuWindow()
@@ -615,7 +615,7 @@ func Start(enc api.Encoder, dec, decInfo api.Decoder) error {
 				cameraPos.Y++
 			}
 
-			if gameType != api.Observer {
+			if gameType == api.Civilisation {
 				if updateHighlights || time.Since(lastHighlightRequest) > time.Second*2 {
 					lastHighlightRequest = time.Now()
 					updateHighlights = false
