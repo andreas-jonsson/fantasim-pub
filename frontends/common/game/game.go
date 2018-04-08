@@ -309,6 +309,11 @@ func Start(enc api.Encoder, dec, decInfo api.Decoder) error {
 		return fmt.Errorf("invalid version %s, expected %s", version, fantasimVersionString)
 	}
 
+	var gameType api.GameType
+	if err := decInfo.Decode(&gameType); err != nil {
+		return err
+	}
+
 	startAsyncDecoder(dec)
 	startInfoDecode(decInfo)
 
@@ -360,16 +365,18 @@ func Start(enc api.Encoder, dec, decInfo api.Decoder) error {
 
 		viewID := obj.(*api.CreateViewResponse).ViewID
 
-		id, err = encodeRequest(enc, &api.ViewHomeRequest{viewID})
-		if err != nil {
-			return err
-		}
+		if gameType != api.Observer {
+			id, err = encodeRequest(enc, &api.ViewHomeRequest{viewID})
+			if err != nil {
+				return err
+			}
 
-		if resp, err := decodeResponse(id); err != nil {
-			return err
-		} else {
-			r := resp.(*api.ViewHomeResponse)
-			cameraPos = image.Pt(r.X, r.Y)
+			if resp, err := decodeResponse(id); err != nil {
+				return err
+			} else {
+				r := resp.(*api.ViewHomeResponse)
+				cameraPos = image.Pt(r.X, r.Y)
+			}
 		}
 
 		var (
@@ -435,7 +442,7 @@ func Start(enc api.Encoder, dec, decInfo api.Decoder) error {
 						} else {
 							logWindow = nil
 						}
-					case t.Key == sys.KeySpace:
+					case gameType != api.Observer && t.Key == sys.KeySpace:
 						if ctrlWindow == nil {
 							resetAllTools()
 							resetMenuWindow()
@@ -608,20 +615,22 @@ func Start(enc api.Encoder, dec, decInfo api.Decoder) error {
 				cameraPos.Y++
 			}
 
-			if updateHighlights || time.Since(lastHighlightRequest) > time.Second*2 {
-				lastHighlightRequest = time.Now()
-				updateHighlights = false
+			if gameType != api.Observer {
+				if updateHighlights || time.Since(lastHighlightRequest) > time.Second*2 {
+					lastHighlightRequest = time.Now()
+					updateHighlights = false
 
-				id, err := encodeRequest(enc, &api.HighlightRequest{})
-				if err != nil {
-					return err
-				}
+					id, err := encodeRequest(enc, &api.HighlightRequest{})
+					if err != nil {
+						return err
+					}
 
-				resp, err := decodeResponse(id)
-				if err != nil {
-					return err
+					resp, err := decodeResponse(id)
+					if err != nil {
+						return err
+					}
+					highlights = resp.(*api.HighlightResponse).Highlight
 				}
-				highlights = resp.(*api.HighlightResponse).Highlight
 			}
 
 			if readViewRequestID == invalidRequestID && time.Since(lastReadView) >= time.Second/time.Duration(RequestFps) {

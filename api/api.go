@@ -24,6 +24,14 @@ import (
 
 const InvalidID uint64 = 0
 
+type GameType uint8
+
+const (
+	Civilisation GameType = iota
+	Adventurer
+	Observer
+)
+
 type TileFlag uint8
 
 const (

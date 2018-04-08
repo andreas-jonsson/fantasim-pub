@@ -67,7 +67,7 @@ func InitSDL(windowSize, resolution image.Point, fullscreen bool) (*SDL, error) 
 		return nil, err
 	}
 
-	renderer, err := sdl.CreateRenderer(window, -1, 0)
+	renderer, err := sdl.CreateRenderer(window, -1, 0) //sdl.RENDERER_SOFTWARE)
 	if err != nil {
 		sdl.Quit()
 		window.Destroy()
