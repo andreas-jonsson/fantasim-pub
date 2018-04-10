@@ -423,13 +423,13 @@ func Start(enc api.Encoder, dec, decInfo api.Decoder) error {
 						}
 					case t.Name == "left shift" || t.Name == "right shift":
 						renderHeight = !renderHeight
-					case t.Name == "a" && t.IsMod(sys.KeyModCtrl):
+					case gameType != api.Adventurer && t.Name == "a" && t.IsMod(sys.KeyModCtrl):
 						cameraPos.X -= viewportSize.X
-					case t.Name == "d" && t.IsMod(sys.KeyModCtrl):
+					case gameType != api.Adventurer && t.Name == "d" && t.IsMod(sys.KeyModCtrl):
 						cameraPos.X += viewportSize.X
-					case t.Name == "w" && t.IsMod(sys.KeyModCtrl):
+					case gameType != api.Adventurer && t.Name == "w" && t.IsMod(sys.KeyModCtrl):
 						cameraPos.Y -= viewportSize.Y
-					case t.Name == "s" && t.IsMod(sys.KeyModCtrl):
+					case gameType != api.Adventurer && t.Name == "s" && t.IsMod(sys.KeyModCtrl):
 						cameraPos.Y += viewportSize.Y
 					case t.Name == "l":
 						if logWindow == nil {
@@ -604,15 +604,17 @@ func Start(enc api.Encoder, dec, decInfo api.Decoder) error {
 				screenEdgeY = 16
 			)
 
-			if mousePos.X < screenEdgeX {
-				cameraPos.X--
-			} else if mousePos.X > sz.X-screenEdgeX {
-				cameraPos.X++
-			}
-			if mousePos.Y < screenEdgeY {
-				cameraPos.Y--
-			} else if mousePos.Y > sz.Y-screenEdgeY {
-				cameraPos.Y++
+			if gameType != api.Adventurer {
+				if mousePos.X < screenEdgeX {
+					cameraPos.X--
+				} else if mousePos.X > sz.X-screenEdgeX {
+					cameraPos.X++
+				}
+				if mousePos.Y < screenEdgeY {
+					cameraPos.Y--
+				} else if mousePos.Y > sz.Y-screenEdgeY {
+					cameraPos.Y++
+				}
 			}
 
 			if gameType == api.Civilisation {
@@ -636,13 +638,15 @@ func Start(enc api.Encoder, dec, decInfo api.Decoder) error {
 			if readViewRequestID == invalidRequestID && time.Since(lastReadView) >= time.Second/time.Duration(RequestFps) {
 				lastReadView = time.Now()
 				requestedCameraPos = cameraPos
-				uvr := api.UpdateViewRequest{ViewID: viewID, X: cameraPos.X, Y: cameraPos.Y}
 
-				id, err := encodeRequest(enc, &uvr)
-				if err != nil {
-					return err
+				if gameType != api.Adventurer {
+					uvr := api.UpdateViewRequest{ViewID: viewID, X: cameraPos.X, Y: cameraPos.Y}
+					id, err := encodeRequest(enc, &uvr)
+					if err != nil {
+						return err
+					}
+					discardResponse(id)
 				}
-				discardResponse(id)
 
 				rvr := api.ReadViewRequest{ViewID: viewID, RLE: true}
 				readViewRequestID, err = encodeRequest(enc, &rvr)
