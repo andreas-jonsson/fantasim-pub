@@ -498,6 +498,12 @@ func Start(enc api.Encoder, dec, decInfo api.Decoder) error {
 								if err := pickTool(enc, mp, mouseWorldPos, viewportSize, rvresp); err != nil {
 									return err
 								}
+							} else if gameType == api.Adventurer {
+								id, err := encodeRequest(enc, &api.ExploreLocationRequest{int(mX), int(mY)})
+								if err != nil {
+									return err
+								}
+								discardResponse(id)
 							}
 						case 3:
 							p := image.Pt(mousePos.X/8, mousePos.Y/16).Add(image.Pt(2, 1))
