@@ -35,20 +35,21 @@ var (
 
 func render(backBuffer *image.RGBA, cvr *api.CreateViewRequest, rvresp *api.ReadViewResponse, cameraPos, currentCameraPos image.Point, heightOnly bool) error {
 	tileReg := tilesetRegister["tiles"]
+	asciiReg := tilesetRegister["ascii"]
 	var heightTiles []*image.Paletted
 
 	if heightOnly {
 		heightTiles = []*image.Paletted{
-			tilesetRegister["ascii"]["0"],
-			tilesetRegister["ascii"]["1"],
-			tilesetRegister["ascii"]["2"],
-			tilesetRegister["ascii"]["3"],
-			tilesetRegister["ascii"]["4"],
-			tilesetRegister["ascii"]["5"],
-			tilesetRegister["ascii"]["6"],
-			tilesetRegister["ascii"]["7"],
-			tilesetRegister["ascii"]["8"],
-			tilesetRegister["ascii"]["9"],
+			asciiReg["0"],
+			asciiReg["1"],
+			asciiReg["2"],
+			asciiReg["3"],
+			asciiReg["4"],
+			asciiReg["5"],
+			asciiReg["6"],
+			asciiReg["7"],
+			asciiReg["8"],
+			asciiReg["9"],
 		}
 	}
 
@@ -249,19 +250,19 @@ func render(backBuffer *image.RGBA, cvr *api.CreateViewRequest, rvresp *api.Read
 				tile = heightTiles[int(9.0*h)]
 				blitImage(backBuffer, dp, tile, scaleColor(whiteColor, h), bg)
 			default:
-				if tileData.UserFlags&api.Territory == 0 {
-					fg.R /= 2
-					fg.G /= 2
-					fg.B /= 2
-					bg.R /= 2
-					bg.G /= 2
-					bg.B /= 2
-				} else if tileIsHighlighted {
-					fg = scaleColor(fg, 2)
-					bg = scaleColor(bg, 2)
-				}
-
 				blitImage(backBuffer, dp, tile, fg, bg)
+			}
+
+			patternsReg := tilesetRegister["patterns"]
+			if tileData.UserFlags&api.Territory == 0 {
+				fg = color.RGBA{A: 0xFF}
+				bg = color.RGBA{}
+				blitImage(backBuffer, dp, patternsReg["shade"], fg, bg)
+			} else if tileIsHighlighted {
+				fg = whiteColor
+				bg = color.RGBA{}
+
+				blitImage(backBuffer, dp, patternsReg["shade"], fg, bg)
 			}
 		}
 	}

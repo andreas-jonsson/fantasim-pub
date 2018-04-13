@@ -67,14 +67,14 @@ func InitSDL(windowSize, resolution image.Point, fullscreen bool) (*SDL, error) 
 		return nil, err
 	}
 
-	renderer, err := sdl.CreateRenderer(window, -1, 0) //sdl.RENDERER_SOFTWARE)
+	renderer, err := sdl.CreateRenderer(window, -1, sdl.RENDERER_SOFTWARE)
 	if err != nil {
 		sdl.Quit()
 		window.Destroy()
 		return nil, err
 	}
 
-	sdl.SetHint(sdl.HINT_RENDER_SCALE_QUALITY, "linear")
+	//sdl.SetHint(sdl.HINT_RENDER_SCALE_QUALITY, "linear")
 	renderer.SetLogicalSize(int32(resolution.X), int32(resolution.Y))
 
 	backBuffer, err := renderer.CreateTexture(sdl.PIXELFORMAT_ABGR8888, sdl.TEXTUREACCESS_STREAMING, int32(resolution.X), int32(resolution.Y))

@@ -24,7 +24,6 @@ import (
 	"image/color"
 	"image/draw"
 	"image/png"
-	"strings"
 	"time"
 
 	"github.com/andreas-jonsson/fantasim-pub/api"
@@ -136,12 +135,13 @@ func blitImage(dst *image.RGBA, dp image.Point, src *image.Paletted, fg, bg colo
 		for x := dr.Min.X; x < dr.Max.X; x++ {
 			i := src.PixOffset(sx, sy)
 			col := pal[src.Pix[i]]
-
-			offset := dst.PixOffset(x, y)
-			dst.Pix[offset] = col.R
-			dst.Pix[offset+1] = col.G
-			dst.Pix[offset+2] = col.B
-			dst.Pix[offset+3] = col.A
+			if col.A > 0 {
+				offset := dst.PixOffset(x, y)
+				dst.Pix[offset] = col.R
+				dst.Pix[offset+1] = col.G
+				dst.Pix[offset+2] = col.B
+				dst.Pix[offset+3] = col.A
+			}
 			sx++
 		}
 		sy++
@@ -673,23 +673,18 @@ func Start(enc api.Encoder, dec, decInfo api.Decoder) error {
 
 			if areaTool != nil {
 				r := image.Rect(areaToolStart.X, areaToolStart.Y, mousePos.X/8, mousePos.Y/16)
-				top := "+"
-				szX := r.Size().X
+				tile := tilesetRegister["patterns"]["shade"]
+				fg := color.RGBA{R: 0xFF, G: 0xFF, B: 0xFF, A: 0xFF}
+				bg := color.RGBA{}
 
-				if szX > 0 {
-					top = "+" + strings.Repeat("-", szX-1) + "+"
+				for y := r.Min.Y; y < r.Max.Y+1; y++ {
+					for x := r.Min.X; x < r.Max.X; x++ {
+						blitImage(backBuffer, image.Pt(x*8, y*16), tile, fg, bg)
+					}
 				}
-				print(r.Min.X, r.Min.Y, top)
-
-				for y := r.Min.Y + 1; y < r.Max.Y; y++ {
-					print(r.Min.X, y, "|")
-					print(r.Max.X, y, "|")
-				}
-				print(r.Min.X, r.Max.Y, top)
 			}
 
 			sz := image.Pt(sz.X/8, sz.Y/16)
-
 			for i := 1; i < sz.X-1; i++ {
 				putch(i, 0, "#196")
 				putch(i, sz.Y-1, "#196")
