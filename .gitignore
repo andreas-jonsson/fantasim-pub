@@ -19,4 +19,5 @@ snap
 .glide/
 frontends/sdl/debug
 frontends/js/main.js.map
+frontends/pocket/android-ndk-r*/
 ./*.snap
