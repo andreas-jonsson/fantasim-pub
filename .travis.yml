@@ -31,7 +31,7 @@ script:
     - cd ../../
 
     - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then ./frontends/tools/package/build_app.sh; fi
-    #- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then ./frontends/tools/package/build_deb.sh; fi
+    - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then ./frontends/tools/package/build_deb.sh; fi
     - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then cd ./frontends/pocket && gomobile build -o fantasim-pocket_android.apk -target=android; fi
 
 before_deploy:
