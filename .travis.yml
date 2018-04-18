@@ -21,7 +21,7 @@ install:
 
     - ./frontends/tools/sdl_from_source.sh
 
-    - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then source ./tools/install_ndk.sh; fi
+    - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then source ./frontends/tools/install_ndk.sh; fi
     - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then go get golang.org/x/mobile/cmd/gomobile && gomobile init -ndk $ANDROID_NDK_HOME; fi
 
 script:
