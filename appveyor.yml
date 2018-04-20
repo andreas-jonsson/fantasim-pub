@@ -32,8 +32,7 @@ build_script:
     - go get -u github.com/akavel/rsrc
     - go install github.com/akavel/rsrc
     - rsrc -ico=../tools/package/icon.ico -arch=amd64
-    - go build -ldflags="-H windowsgui" ./...
-    - rename main.exe fantasim-sdl.exe
+    - go build -o fantasim-sdl.exe -ldflags=all="-H windowsgui"
 
 after_build:
     - iscc /Qp /O".\" ..\tools\package\setup.iss
