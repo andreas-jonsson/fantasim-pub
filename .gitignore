@@ -3,6 +3,7 @@
 *.dll
 *.so
 *.dylib
+*.apk
 
 stage
 parts
