@@ -28,10 +28,11 @@ install:
 
 build_script:
     - cd frontends\sdl
-    - go get github.com/akavel/rsrc
-    - rsrc -ico=../tools/package/icon.ico -arch=amd64
     - go get -v
-    - go build -o fantasim-sdl.exe -ldflags="-H windowsgui"
+    - go get -u github.com/akavel/rsrc
+    - go install github.com/akavel/rsrc
+    - rsrc -ico=../tools/package/icon.ico -arch=amd64
+    - go build -o fantasim-sdl.exe -ldflags=all="-H windowsgui"
 
 after_build:
     - iscc /Qp /O".\" ..\tools\package\setup.iss

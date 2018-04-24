@@ -73,7 +73,7 @@
         "tile_height": 16,
 
         "mapping": {
-            "0": 0
+            "shade": 125
         }
     },
 

@@ -13,3 +13,5 @@
 <img src="https://raw.githubusercontent.com/andreas-jonsson/fantasim-pub/master/assets/screenshots/screenshot4.gif" width="250">
 
 ## Fantasim Frontend API
+
+[![GoDoc](https://img.shields.io/badge/doc-GoDoc-blue.svg)](https://godoc.org/github.com/andreas-jonsson/fantasim-pub/api)

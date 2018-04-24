@@ -1,6 +1,6 @@
 language: go
 go:
-    - "1.9.x"
+    - "1.10.x"
 
 os:
     - linux
@@ -13,12 +13,16 @@ notifications:
 
 install:
     - export FANTASIM_SDL_VERSION=0.0.1
+    - export NDK_VERSION=r14b
     - export SDL_PREFIX=/usr/local
 
     - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install dylibbundler; fi
     - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get install -y rpl; fi
 
     - ./frontends/tools/sdl_from_source.sh
+
+    - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then source ./frontends/tools/install_ndk.sh; fi
+    - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then go get golang.org/x/mobile/cmd/gomobile && gomobile init -ndk $ANDROID_NDK_HOME; fi
 
 script:
     - cd frontends/sdl
@@ -27,12 +31,13 @@ script:
     - cd ../../
 
     - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then ./frontends/tools/package/build_app.sh; fi
-    #- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then ./frontends/tools/package/build_deb.sh; fi
+    - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then ./frontends/tools/package/build_deb.sh; fi
+    - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then cd ./frontends/pocket && gomobile build -o ../../fantasim-pocket_android.apk -target=android && cd ../..; fi
 
 before_deploy:
     - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then export FINAL_PACKAGE=fantasim-sdl_osx.zip; fi
     #- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then export FINAL_PACKAGE=fantasim-sdl_linux.deb; fi
-    - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then export FINAL_PACKAGE=./frontends/tools/package/fantasim-sdl_linux.snap.html; fi
+    - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then export FINAL_PACKAGE=fantasim-*; fi
 
 deploy:
     provider: releases
