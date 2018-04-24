@@ -16,6 +16,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 //go:generate go run ../common/data/generate.go
+//go:generate go run ../common/data3d/generate.go
 
 package main
 

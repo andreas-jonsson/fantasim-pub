@@ -24,13 +24,11 @@ import (
 	"image/color"
 	"image/draw"
 	"image/png"
-	"log"
 	"time"
 
 	"github.com/andreas-jonsson/fantasim-pub/api"
 	"github.com/andreas-jonsson/fantasim-pub/frontends/common/data"
 	sys "github.com/andreas-jonsson/fantasim-pub/frontends/common/platform"
-	"github.com/andreas-jonsson/fantasim-pub/frontends/common/raycast"
 )
 
 const (
@@ -154,20 +152,20 @@ var (
 func Initialize(in sys.Input, out sys.Renderer) error {
 	input = in
 	renderer = out
+	/*
+		w, err := newWorld()
+		if err != nil {
+			log.Fatalln(err)
+		}
 
-	w, err := newWorld()
-	if err != nil {
-		log.Fatalln(err)
-	}
+		sprites, err := loadSprites(level)
+		if err != nil {
+			log.Fatalln(err)
+		}
 
-	sprites, err := loadSprites(level)
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	rc := raycast.NewRaycaster(rt, w)
-	sc := raycast.NewSpritecaster(sprites)
-
+		rc := raycast.NewRaycaster(rt, w)
+		sc := raycast.NewSpritecaster(sprites)
+	*/
 	return buildTilesets()
 }
 
