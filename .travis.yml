@@ -13,11 +13,11 @@ notifications:
 
 install:
     - export FANTASIM_SDL_SHORT_VERSION=0.0
-    - export FANTASIM_SDL_VERSION=$FANTASIM_SDL_SHORT_VERSION.1
+    - export FANTASIM_SDL_VERSION={$FANTASIM_SDL_SHORT_VERSION}.1
     - export NDK_VERSION=r14b
     - export SDL_PREFIX=/usr/local
 
-    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install dylibbundler; fi
+    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install dylibbundler rpl; fi
     - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get install -y rpl; fi
 
     - ./frontends/tools/sdl_from_source.sh
@@ -35,17 +35,12 @@ script:
     - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then ./frontends/tools/package/build_deb.sh; fi
     - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then cd ./frontends/pocket && gomobile build -o ../../fantasim-pocket_android.apk -target=android && cd ../..; fi
 
-before_deploy:
-    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then export FINAL_PACKAGE=fantasim-sdl_osx.zip; fi
-    #- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then export FINAL_PACKAGE=fantasim-sdl_linux.deb; fi
-    - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then export FINAL_PACKAGE=fantasim-*; fi
-
 deploy:
     provider: releases
     skip_cleanup: true
     prerelease: true
     file_glob: true
-    file: "${FINAL_PACKAGE}"
+    file: "fantasim-*"
     on:
         tags: true
         repo: andreas-jonsson/fantasim-pub
