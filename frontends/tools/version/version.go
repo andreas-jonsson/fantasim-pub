@@ -63,7 +63,7 @@ func main() {
 	format = "export FANTASIM_SDL_SHORT_VERSION=0.%d"
 	replaceInFile(".travis.yml", fmt.Sprintf(format, oldMinor), fmt.Sprintf(format, newMinor))
 
-	format = "export FANTASIM_SDL_VERSION={$FANTASIM_SDL_SHORT_VERSION}.%d"
+	format = "export FANTASIM_SDL_VERSION=${FANTASIM_SDL_SHORT_VERSION}.%d"
 	replaceInFile(".travis.yml", fmt.Sprintf(format, oldPatch), fmt.Sprintf(format, newPatch))
 
 	format = "#define MyAppVersion \"0.%d.%d\""

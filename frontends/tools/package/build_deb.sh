@@ -1,6 +1,6 @@
 #!/bin/bash
 
-DIR=fantasim-sdl_{$FANTASIM_SDL_VERSION}_linux
+DIR=fantasim-sdl_${FANTASIM_SDL_VERSION}_linux
 
 if [ -d "$DIR" ]; then rm -rf "$DIR"; fi
 cp -r "frontends/tools/package/fantasim-sdl.deb" $DIR

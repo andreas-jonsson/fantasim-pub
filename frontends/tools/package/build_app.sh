@@ -9,5 +9,5 @@ rpl e34f49fc-129d-4fb9-b134-ced05a22a270 $FANTASIM_SDL_SHORT_VERSION frontends/t
 cp frontends/sdl/fantasim-sdl Fantasim-SDL.app/Contents/MacOS
 dylibbundler -od -b -x Fantasim-SDL.app/Contents/MacOS/fantasim-sdl -d Fantasim-SDL.app/Contents/libs
 
-zip -rq fantasim-sdl_{$FANTASIM_SDL_VERSION}_osx.zip Fantasim-SDL.app
+zip -rq fantasim-sdl_${FANTASIM_SDL_VERSION}_osx.zip Fantasim-SDL.app
 rm -rf Fantasim-SDL.app
