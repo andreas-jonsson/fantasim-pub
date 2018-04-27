@@ -18,7 +18,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 package main
 
 import (
-	"flag"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -52,28 +51,21 @@ func replaceInFile(file, oldStr, newStr string) {
 }
 
 func main() {
-	update := flag.Bool("update", false, "Update version information in sourcetree")
-	flag.Parse()
+	format := "VersionString = \"0.%d.%d\""
+	replaceInFile("api/api.go", fmt.Sprintf(format, oldMinor, oldPatch), fmt.Sprintf(format, newMinor, newPatch))
 
-	if *update {
-		format := "VersionString = \"0.%d.%d\""
-		replaceInFile("api/api.go", fmt.Sprintf(format, oldMinor, oldPatch), fmt.Sprintf(format, newMinor, newPatch))
+	format = "version: 0.%d.%d"
+	replaceInFile("snapcraft.yaml", fmt.Sprintf(format, oldMinor, oldPatch), fmt.Sprintf(format, newMinor, newPatch))
 
-		format = "version: 0.%d.%d"
-		replaceInFile("snapcraft.yaml", fmt.Sprintf(format, oldMinor, oldPatch), fmt.Sprintf(format, newMinor, newPatch))
+	format = "version: 0.%d.%d.{build}"
+	replaceInFile("appveyor.yml", fmt.Sprintf(format, oldMinor, oldPatch), fmt.Sprintf(format, newMinor, newPatch))
 
-		format = "version: 0.%d.%d.{build}"
-		replaceInFile("appveyor.yml", fmt.Sprintf(format, oldMinor, oldPatch), fmt.Sprintf(format, newMinor, newPatch))
+	format = "export FANTASIM_SDL_SHORT_VERSION=0.%d"
+	replaceInFile(".travis.yml", fmt.Sprintf(format, oldMinor), fmt.Sprintf(format, newMinor))
 
-		format = "export FANTASIM_SDL_SHORT_VERSION=0.%d"
-		replaceInFile(".travis.yml", fmt.Sprintf(format, oldMinor), fmt.Sprintf(format, newMinor))
+	format = "export FANTASIM_SDL_VERSION={$FANTASIM_SDL_SHORT_VERSION}.%d"
+	replaceInFile(".travis.yml", fmt.Sprintf(format, oldPatch), fmt.Sprintf(format, newPatch))
 
-		format = "export FANTASIM_SDL_VERSION={$FANTASIM_SDL_SHORT_VERSION}.%d"
-		replaceInFile(".travis.yml", fmt.Sprintf(format, oldPatch), fmt.Sprintf(format, newPatch))
-
-		format = "#define MyAppVersion \"0.%d.%d\""
-		replaceInFile("frontends/tools/package/setup.iss", fmt.Sprintf(format, oldMinor, oldPatch), fmt.Sprintf(format, newMinor, newPatch))
-	} else {
-		fmt.Printf("0.%d.%d", newMinor, newPatch)
-	}
+	format = "#define MyAppVersion \"0.%d.%d\""
+	replaceInFile("frontends/tools/package/setup.iss", fmt.Sprintf(format, oldMinor, oldPatch), fmt.Sprintf(format, newMinor, newPatch))
 }
