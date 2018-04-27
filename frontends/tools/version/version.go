@@ -65,20 +65,14 @@ func main() {
 		format = "version: 0.%d.%d.{build}"
 		replaceInFile("appveyor.yml", fmt.Sprintf(format, oldMinor, oldPatch), fmt.Sprintf(format, newMinor, newPatch))
 
-		format = "export FANTASIM_SDL_VERSION=0.%d.%d"
-		replaceInFile(".travis.yml", fmt.Sprintf(format, oldMinor, oldPatch), fmt.Sprintf(format, newMinor, newPatch))
+		format = "export FANTASIM_SDL_SHORT_VERSION=0.%d"
+		replaceInFile(".travis.yml", fmt.Sprintf(format, oldMinor), fmt.Sprintf(format, newMinor))
+
+		format = "export FANTASIM_SDL_VERSION=$FANTASIM_SDL_SHORT_VERSION.%d"
+		replaceInFile(".travis.yml", fmt.Sprintf(format, oldPatch), fmt.Sprintf(format, newPatch))
 
 		format = "#define MyAppVersion \"0.%d.%d\""
-		replaceInFile("tools/package/setup.iss", fmt.Sprintf(format, oldMinor, oldPatch), fmt.Sprintf(format, newMinor, newPatch))
-
-		format = "<key>CFBundleGetInfoString</key><string>0.%d.%d, Copyright"
-		replaceInFile("tools/package/Fantasim-SDL.app/Contents/Info.plist", fmt.Sprintf(format, oldMinor, oldPatch), fmt.Sprintf(format, newMinor, newPatch))
-
-		format = "<key>CFBundleShortVersionString</key><string>0.%d</string>"
-		replaceInFile("tools/package/Fantasim-SDL.app/Contents/Info.plist", fmt.Sprintf(format, oldMinor), fmt.Sprintf(format, newMinor))
-
-		format = "<key>CFBundleVersion</key><string>0.%d.%d</string>"
-		replaceInFile("tools/package/Fantasim-SDL.app/Contents/Info.plist", fmt.Sprintf(format, oldMinor, oldPatch), fmt.Sprintf(format, newMinor, newPatch))
+		replaceInFile("frontends/tools/package/setup.iss", fmt.Sprintf(format, oldMinor, oldPatch), fmt.Sprintf(format, newMinor, newPatch))
 	} else {
 		fmt.Printf("0.%d.%d", newMinor, newPatch)
 	}

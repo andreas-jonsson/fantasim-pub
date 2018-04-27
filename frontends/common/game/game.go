@@ -32,10 +32,6 @@ import (
 	"github.com/ojrac/opensimplex-go"
 )
 
-const (
-	fantasimVersionString = "0.0.1"
-)
-
 var (
 	GameFps    = 30
 	RequestFps = 10
@@ -305,8 +301,8 @@ func Start(enc api.Encoder, dec, decInfo api.Decoder) error {
 		return err
 	}
 
-	if version != fantasimVersionString {
-		return fmt.Errorf("invalid version %s, expected %s", version, fantasimVersionString)
+	if version != api.VersionString {
+		return fmt.Errorf("invalid version %s, expected %s", version, api.VersionString)
 	}
 
 	var gameType api.GameType
