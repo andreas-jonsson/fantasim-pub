@@ -22,6 +22,8 @@ import (
 	"reflect"
 )
 
+const VersionString = "0.0.1"
+
 const InvalidID uint64 = 0
 
 type GameType uint8
