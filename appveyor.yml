@@ -38,7 +38,7 @@ after_build:
     - iscc /Qp /O".\" ..\tools\package\setup.iss
 
 artifacts:
-    - path: frontends/sdl/fantasim-sdl_windows.exe
+    - path: frontends/sdl/fantasim-sdl_*_windows.exe
 
 deploy:
     description: 'Fantasim SDL'
