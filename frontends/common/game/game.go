@@ -669,12 +669,12 @@ func Start(enc api.Encoder, dec, decInfo api.Decoder) error {
 
 			if areaTool != nil {
 				r := image.Rect(areaToolStart.X, areaToolStart.Y, mousePos.X/8, mousePos.Y/16)
-				tile := tilesetRegister["patterns"]["shade"]
+				tile := tilesetRegister["default"]["#176"]
 				fg := color.RGBA{R: 0xFF, G: 0xFF, B: 0xFF, A: 0xFF}
 				bg := color.RGBA{}
 
 				for y := r.Min.Y; y < r.Max.Y+1; y++ {
-					for x := r.Min.X; x < r.Max.X; x++ {
+					for x := r.Min.X; x < r.Max.X+1; x++ {
 						blitImage(backBuffer, image.Pt(x*8, y*16), tile, fg, bg)
 					}
 				}
