@@ -56,6 +56,8 @@ func main() {
 
 	format = "version: 0.%d.%d"
 	replaceInFile("snapcraft.yaml", fmt.Sprintf(format, oldMinor, oldPatch), fmt.Sprintf(format, newMinor, newPatch))
+
+	format = "version: 0.%d.%d.{build}"
 	replaceInFile("appveyor.yml", fmt.Sprintf(format, oldMinor, oldPatch), fmt.Sprintf(format, newMinor, newPatch))
 
 	format = "export FANTASIM_SDL_SHORT_VERSION=0.%d"
