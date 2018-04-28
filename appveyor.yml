@@ -1,4 +1,4 @@
-version: 0.0.1.{build}
+version: 0.0.1
 
 platform: x64
 
@@ -45,7 +45,7 @@ deploy:
     provider: GitHub
     auth_token:
         secure: kcKpWCf8VCWk8VsjncvYS90wjZoY8LSxTPwNHCQ+mmjls5gt4j9dbsIgTw4gt5le
-    artifact: frontends/sdl/fantasim-sdl_*_windows.exe
+    artifact: frontends/sdl/fantasim-sdl_${APPVEYOR_BUILD_VERSION}_windows.exe
     draft: false
     prerelease: true
     on:
