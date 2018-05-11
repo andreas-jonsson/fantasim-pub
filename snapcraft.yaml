@@ -24,6 +24,7 @@ parts:
     go-importpath: github.com/andreas-jonsson/fantasim-pub
     go-packages: [github.com/andreas-jonsson/fantasim-pub/frontends/sdl]
     build-packages: [pkg-config, libsdl2-dev]
+    stage-packages: [xdg-open]
 
 apps:
   fantasim-sdl:
