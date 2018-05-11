@@ -26,6 +26,7 @@ parts:
     build-packages: [pkg-config, libsdl2-dev]
 
   xdg-open:
+    plugin: nil
     stage-packages: [xdg-utils]
 
 apps:
