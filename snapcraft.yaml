@@ -2,16 +2,24 @@ name: fantasim-sdl
 version: 0.0.1
 summary: Fantasim-SDL frontend.
 #icon: usr/local/share/fantasim-sdl/icon256x256.png
+architectures: [amd64]
 description: |
   Fantasim is a fantasy world simulator game similar to Dwarf Fortress and Goblin Camp.
 
-grade: devel
+grade: beta
 confinement: strict
 
 parts:
   desktop:
     source: frontends/tools/package/fantasim-sdl.snap/
     plugin: dump
+
+  snapd-xdg-open:
+    source: https://github.com/ubuntu-core/snapd-xdg-open.git
+    plugin: copy
+    files:
+      data/xdg-open: bin/xdg-open
+    stage-packages: [dbus]
 
   fantasim-sdl:
     stage:
@@ -23,7 +31,6 @@ parts:
     go-importpath: github.com/andreas-jonsson/fantasim-pub
     go-packages: [github.com/andreas-jonsson/fantasim-pub/frontends/sdl]
     build-packages: [pkg-config, libsdl2-dev]
-    stage-packages: [snapd-xdg-open]
 
 apps:
   fantasim-sdl:
