@@ -25,9 +25,9 @@ parts:
     go-packages: [github.com/andreas-jonsson/fantasim-pub/frontends/sdl]
     build-packages: [pkg-config, libsdl2-dev]
 
-  xdg-open:
+  integration:
     plugin: nil
-    stage-packages: [xdg-utils]
+    stage-packages: [xdg-utils, bash]
 
 apps:
   fantasim-sdl:
@@ -39,3 +39,4 @@ apps:
 
   xdg-open:
     command: bin/xdg-open
+    plugs: [network, network-bind, x11, home, unity7, gsettings]
