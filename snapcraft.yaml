@@ -6,7 +6,7 @@ architectures: [amd64]
 description: |
   Fantasim is a fantasy world simulator game similar to Dwarf Fortress and Goblin Camp.
 
-grade: devel
+grade: stable
 confinement: strict
 
 parts:

@@ -56,6 +56,10 @@ func main() {
 	noTimeout := flag.Bool("notimeout", false, "Disable socket timout")
 	flag.Parse()
 
+	if fantasimUrl == "" {
+		fantasimUrl = flag.Arg(0)
+	}
+
 	if fantasimUrl != "" {
 		u, err := url.Parse(fantasimUrl)
 		if err != nil {
