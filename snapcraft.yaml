@@ -25,10 +25,6 @@ parts:
     go-packages: [github.com/andreas-jonsson/fantasim-pub/frontends/sdl]
     build-packages: [pkg-config, libsdl2-dev]
 
-  integration:
-    plugin: nil
-    stage-packages: [xdg-utils, bash]
-
 apps:
   fantasim-sdl:
     command: bin/fantasim-sdl
@@ -38,5 +34,4 @@ apps:
       LD_LIBRARY_PATH: $LD_LIBRARY_PATH:$SNAP/lib/x86_64-linux-gnu:$SNAP/usr/lib/x86_64-linux-gnu:$SNAP/usr/lib/x86_64-linux-gnu/pulseaudio
 
   xdg-open:
-    command: bin/xdg-open
-    plugs: [network, network-bind, x11, home, unity7, gsettings]
+    command: xdg-open
