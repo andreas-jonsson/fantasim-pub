@@ -95,6 +95,18 @@ func (p *Pocket) PollEvent() sys.Event {
 				mousePosX += deltaX
 				mousePosY += deltaY
 
+				if mousePosX < 0 {
+					mousePosX = 0
+				} else if int(mousePosX) > res.X {
+					mousePosX = float32(res.X)
+				}
+
+				if mousePosY < 0 {
+					mousePosY = 0
+				} else if int(mousePosY) > res.Y {
+					mousePosY = float32(res.Y)
+				}
+
 				return &sys.MouseMotionEvent{int(mousePosX), int(mousePosY), int(deltaX), int(deltaY)}
 			}
 		}

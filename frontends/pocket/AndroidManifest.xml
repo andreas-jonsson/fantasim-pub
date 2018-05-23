@@ -14,6 +14,7 @@
 
 		<activity android:name="org.golang.app.GoNativeActivity"
 			android:label="FantasimPocket"
+			android:launchMode="singleTask"
 			android:windowSoftInputMode="stateAlwaysHidden|adjustResize"
 			android:configChanges="orientation|keyboardHidden"
 			android:screenOrientation="landscape">
@@ -21,16 +22,19 @@
 			<meta-data android:name="android.app.lib_name" android:value="FantasimPocket"/>
 
 			<intent-filter>
-				<action android:name="android.intent.action.MAIN"/>
-				<category android:name="android.intent.category.LAUNCHER"/>
-			</intent-filter>
-
-			<intent-filter>
 				<action android:name="android.intent.action.VIEW"/>
 				<category android:name="android.intent.category.DEFAULT"/>
 				<category android:name="android.intent.category.BROWSABLE"/>
 				<data android:scheme="fantasim"/>
 			</intent-filter>
+
+			<!--
+			<intent-filter>
+				<action android:name="android.intent.action.MAIN"/>
+				<category android:name="android.intent.category.LAUNCHER"/>
+			</intent-filter>
+			-->
+			
 		</activity>
 	</application>
 </manifest>

@@ -24,12 +24,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
-	"os"
+	"net/url"
 
 	"github.com/andreas-jonsson/fantasim-pub/frontends/common/game"
 	sys "github.com/andreas-jonsson/fantasim-pub/frontends/pocket/platform"
+	"github.com/andreas-jonsson/fantasim-pub/frontends/pocket/platform/jni"
 	"golang.org/x/mobile/app"
 	"golang.org/x/mobile/event/key"
 	"golang.org/x/mobile/event/lifecycle"
@@ -44,10 +44,6 @@ import (
 
 const lobbyURL = "http://lobby.fantasim.net"
 
-type Config struct {
-	Host, Key string
-}
-
 func main() {
 	app.Main(func(a app.App) {
 		var (
@@ -55,31 +51,7 @@ func main() {
 			sz     size.Event
 			images *glutil.Images
 			glimg  *glutil.Image
-			cfg    = Config{"localhost", "00000000"}
 		)
-
-		const configPath = "/storage/emulated/0/Download/fantasim.json"
-		newConfig := func() {
-			data, _ := json.MarshalIndent(cfg, "", "\t")
-			if err := ioutil.WriteFile(configPath, data, 0644); err != nil {
-				log.Println(err)
-			}
-		}
-
-		data, err := ioutil.ReadFile(configPath)
-		if err != nil {
-			log.Println(err)
-			newConfig()
-			return
-		}
-
-		if err = json.Unmarshal(data, &cfg); err != nil {
-			log.Println(err)
-			newConfig()
-			return
-		}
-
-		//log.Println(jni.Test())
 
 		paintDoneChan := make(chan struct{})
 		exitChan := make(chan struct{})
@@ -92,24 +64,18 @@ func main() {
 					glctx = e.DrawContext.(gl.Context)
 					images = glutil.NewImages(glctx)
 
-					//serverAddress := "79.102.38.201:8080"
-					//playerKey := "787C29A4B5296915"
-
-					serverAddress := cfg.Host
-					playerKey := cfg.Key
-
-					log.Println("start cmd")
-					_, err := os.StartProcess("am", []string{"start", "-a", "android.intent.action.VIEW", "-d", lobbyURL}, &os.ProcAttr{Dir: "/system/bin"})
+					u, err := jni.GetURL()
 					if err != nil {
-						log.Println(err)
+						log.Fatalln(err)
 					}
-					/*
-						cmd := exec.Command("am", "start", "-a", "android.intent.action.VIEW", "-d", lobbyURL)
-						if err := cmd.Start(); err != nil {
-							log.Println(err)
-						}
-						log.Println("done!")
-					*/
+
+					addr, err := url.Parse(u)
+					if err != nil {
+						log.Fatalln(err)
+					}
+
+					serverAddress := addr.Host
+					playerKey := addr.Query().Get("key")
 
 					go func() {
 						defer func() {
