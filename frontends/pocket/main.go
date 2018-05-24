@@ -26,6 +26,7 @@ import (
 	"io"
 	"log"
 	"net/url"
+	"os"
 
 	"github.com/andreas-jonsson/fantasim-pub/frontends/common/game"
 	sys "github.com/andreas-jonsson/fantasim-pub/frontends/pocket/platform"
@@ -43,6 +44,14 @@ import (
 )
 
 const lobbyURL = "http://lobby.fantasim.net"
+
+func openLobby(err error) {
+	log.Println(err)
+	if err := jni.OpenURL(lobbyURL); err != nil {
+		log.Fatalln(err)
+	}
+	os.Exit(-1)
+}
 
 func main() {
 	app.Main(func(a app.App) {
@@ -66,12 +75,12 @@ func main() {
 
 					u, err := jni.GetURL()
 					if err != nil {
-						log.Fatalln(err)
+						openLobby(err)
 					}
 
 					addr, err := url.Parse(u)
 					if err != nil {
-						log.Fatalln(err)
+						openLobby(err)
 					}
 
 					serverAddress := addr.Host
@@ -98,13 +107,13 @@ func main() {
 						origin := fmt.Sprintf("http://%s/", serverAddress)
 						apiWs, err := websocket.Dial(fmt.Sprintf("ws://%s/api", serverAddress), "", origin)
 						if err != nil {
-							log.Fatalln(err)
+							openLobby(err)
 						}
 						defer apiWs.Close()
 
 						infoWs, err := websocket.Dial(fmt.Sprintf("ws://%s/info", serverAddress), "", origin)
 						if err != nil {
-							log.Fatalln(err)
+							openLobby(err)
 						}
 						defer infoWs.Close()
 
