@@ -10,8 +10,7 @@
 
 	<application android:label="FantasimPocket"
 		android:debuggable="true"
-		android:theme="@android:style/Theme.NoTitleBar.Fullscreen"
-		android:icon="@drawable/icon">
+		android:theme="@android:style/Theme.NoTitleBar.Fullscreen">
 
 		<activity android:name="org.golang.app.GoNativeActivity"
 			android:label="FantasimPocket"
