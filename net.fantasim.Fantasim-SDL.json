@@ -18,8 +18,8 @@
             "buildsystem": "simple",
             "build-commands": [
                 "tar -C . -xzf go1.10.3.linux-amd64.tar.gz",
-                "install -D checkout/src/github.com/andreas-jonsson/fantasim-pub/frontends/tools/package/fantasim-sdl.snap/usr/share/applications/fantasim-sdl.desktop /app/usr/share/applications/fantasim-sdl.desktop",
-                "install -D checkout/src/github.com/andreas-jonsson/fantasim-pub/frontends/tools/package/fantasim-sdl.snap/usr/local/share/fantasim-sdl/icon256x256.png /app/usr/local/share/fantasim-sdl/icon256x256.png",
+                "install -D checkout/src/github.com/andreas-jonsson/fantasim-pub/frontends/tools/package/fantasim-sdl.flatpak/net.fantasim.Fantasim-SDL.desktop /app/share/applications/net.fantasim.Fantasim-SDL.desktop",
+                "install -D checkout/src/github.com/andreas-jonsson/fantasim-pub/frontends/tools/package/fantasim-sdl.flatpak/net.fantasim.Fantasim-SDL.png /app/share/icons/hicolor/256x256/apps/net.fantasim.Fantasim-SDL.png",
                 "export GOROOT=$(pwd)/go && export GOPATH=$(pwd)/checkout && go build -o /app/bin/fantasim-sdl checkout/src/github.com/andreas-jonsson/fantasim-pub/frontends/sdl/main.go"
             ],
             "sources": [
