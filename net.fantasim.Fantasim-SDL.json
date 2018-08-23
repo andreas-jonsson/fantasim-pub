@@ -1,0 +1,25 @@
+{
+    "app-id": "net.fantasim.Fantasim-SDL",
+    "runtime": "org.freedesktop.Platform",
+    "runtime-version": "1.6",
+    "sdk": "org.freedesktop.Sdk",
+    "sdk-extensions": [
+        "org.freedesktop.Sdk.Extension.golang"
+    ],
+    "command": "fantasim-sdl",
+    "modules": [
+        {
+            "name": "fantasim-sdl",
+            "buildsystem": "simple",
+            "build-commands": [
+                "go build -o /app/bin/fantasim-sdl frontends/sdl/main.go"
+            ],
+            "sources": [
+                {
+                    "type": "dir",
+                    "path": "./"
+                }
+            ]
+        }
+    ]
+}
