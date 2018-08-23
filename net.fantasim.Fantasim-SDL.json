@@ -7,15 +7,19 @@
         "org.freedesktop.Sdk.Extension.golang"
     ],
     "command": "fantasim-sdl",
+    "finish-args": ["--socket=x11", "--share=network", "--device=dri", "--socket=wayland"],
     "build-options": {
         "append-path": "go/bin"
     },
+    "cleanup": ["checkout", "go", "go1.10.3.linux-amd64.tar.gz"],
     "modules": [
         {
             "name": "fantasim-sdl",
             "buildsystem": "simple",
             "build-commands": [
                 "tar -C . -xzf go1.10.3.linux-amd64.tar.gz",
+                "install -D checkout/src/github.com/andreas-jonsson/fantasim-pub/frontends/tools/package/fantasim-sdl.snap/usr/share/applications/fantasim-sdl.desktop /app/usr/share/applications/fantasim-sdl.desktop",
+                "install -D checkout/src/github.com/andreas-jonsson/fantasim-pub/frontends/tools/package/fantasim-sdl.snap/usr/local/share/fantasim-sdl/icon256x256.png /app/usr/local/share/fantasim-sdl/icon256x256.png",
                 "export GOROOT=$(pwd)/go && export GOPATH=$(pwd)/checkout && go build -o /app/bin/fantasim-sdl checkout/src/github.com/andreas-jonsson/fantasim-pub/frontends/sdl/main.go"
             ],
             "sources": [
