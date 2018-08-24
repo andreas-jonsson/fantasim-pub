@@ -19,9 +19,11 @@ install:
 
     - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install dylibbundler rpl; fi
 
-    - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo add-apt-repository -y ppa:alexlarsson/flatpak && sudo apt update; fi
-    - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get install -y rpl flatpak flatpak-builder; fi
+    #- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo add-apt-repository -y ppa:alexlarsson/flatpak && sudo apt update; fi
+    #- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get install -y rpl flatpak flatpak-builder; fi
+    - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get install -y rpl; fi
 
+    #- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then flatpak install flathub org.freedesktop.Platform//1.6 org.freedesktop.Sdk//1.6; fi
     - ./frontends/tools/sdl_from_source.sh
 
     - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then source ./frontends/tools/install_ndk.sh; fi
@@ -34,10 +36,11 @@ script:
     - cd ../../
 
     - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then ./frontends/tools/package/build_app.sh; fi
+    
     - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then ./frontends/tools/package/build_deb.sh; fi
 
-    - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then flatpak-builder --repo=repo build net.fantasim.Fantasim-SDL.json; fi
-    - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then flatpak build-bundle -v ./repo fantasim-sdl.flatpak net.fantasim.Fantasim-SDL; fi
+    #- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then flatpak-builder --repo=repo build net.fantasim.Fantasim-SDL.json; fi
+    #- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then flatpak build-bundle -v ./repo fantasim-sdl_${FANTASIM_SDL_VERSION}.flatpak net.fantasim.Fantasim-SDL; fi
 
     - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then cd ./frontends/pocket && gomobile build -o ../../fantasim-pocket_${FANTASIM_SDL_VERSION}_android.apk -target=android && cd ../..; fi
 
