@@ -18,7 +18,9 @@ install:
     - export SDL_PREFIX=/usr/local
 
     - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install dylibbundler rpl; fi
-    - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get install -y rpl; fi
+
+    - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo add-apt-repository ppa:alexlarsson/flatpak && sudo apt update; fi
+    - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get install -y rpl flatpak flatpak-builder; fi
 
     - ./frontends/tools/sdl_from_source.sh
 
@@ -33,6 +35,10 @@ script:
 
     - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then ./frontends/tools/package/build_app.sh; fi
     - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then ./frontends/tools/package/build_deb.sh; fi
+
+    - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then flatpak-builder --repo=repo build net.fantasim.Fantasim-SDL.json; fi
+    - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then flatpak build-bundle -v ./repo fantasim-sdl.flatpak net.fantasim.Fantasim-SDL; fi
+
     - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then cd ./frontends/pocket && gomobile build -o ../../fantasim-pocket_${FANTASIM_SDL_VERSION}_android.apk -target=android && cd ../..; fi
 
 deploy:

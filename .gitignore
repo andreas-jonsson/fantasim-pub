@@ -24,6 +24,7 @@ frontends/pocket/android-ndk-r*/
 ./*.snap
 
 # Flatpak dirs
+*.flatpak
 .flatpak-builder
 build
 repo
