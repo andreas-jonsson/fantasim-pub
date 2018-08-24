@@ -1,6 +1,6 @@
 [Desktop Entry]
 Name=Fantasim-SDL
-Exec=net.fantasim.Fantasim-SDL -url=%u
+Exec=fantasim-sdl -url=%u
 Icon=net.fantasim.Fantasim-SDL
 Type=Application
 Terminal=false

@@ -22,5 +22,8 @@ frontends/sdl/debug
 frontends/js/main.js.map
 frontends/pocket/android-ndk-r*/
 ./*.snap
+
+# Flatpak dirs
 .flatpak-builder
-build-dir
+build
+repo

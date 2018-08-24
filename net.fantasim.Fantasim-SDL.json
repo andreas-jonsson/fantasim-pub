@@ -11,16 +11,16 @@
     "build-options": {
         "append-path": "go/bin"
     },
-    "cleanup": ["checkout", "go", "go1.10.3.linux-amd64.tar.gz"],
+    "cleanup": ["gopath", "go", "go1.10.3.linux-amd64.tar.gz"],
     "modules": [
         {
             "name": "fantasim-sdl",
             "buildsystem": "simple",
             "build-commands": [
                 "tar -C . -xzf go1.10.3.linux-amd64.tar.gz",
-                "install -D checkout/src/github.com/andreas-jonsson/fantasim-pub/frontends/tools/package/fantasim-sdl.flatpak/net.fantasim.Fantasim-SDL.desktop /app/share/applications/net.fantasim.Fantasim-SDL.desktop",
-                "install -D checkout/src/github.com/andreas-jonsson/fantasim-pub/frontends/tools/package/fantasim-sdl.flatpak/net.fantasim.Fantasim-SDL.png /app/share/icons/hicolor/256x256/apps/net.fantasim.Fantasim-SDL.png",
-                "export GOROOT=$(pwd)/go && export GOPATH=$(pwd)/checkout && go build -o /app/bin/fantasim-sdl checkout/src/github.com/andreas-jonsson/fantasim-pub/frontends/sdl/main.go"
+                "install -D gopath/src/github.com/andreas-jonsson/fantasim-pub/frontends/tools/package/fantasim-sdl.flatpak/net.fantasim.Fantasim-SDL.desktop /app/share/applications/net.fantasim.Fantasim-SDL.desktop",
+                "install -D gopath/src/github.com/andreas-jonsson/fantasim-pub/frontends/tools/package/fantasim-sdl.flatpak/net.fantasim.Fantasim-SDL.png /app/share/icons/hicolor/256x256/apps/net.fantasim.Fantasim-SDL.png",
+                "export GOROOT=$(pwd)/go && export GOPATH=$(pwd)/gopath && go build -o /app/bin/fantasim-sdl gopath/src/github.com/andreas-jonsson/fantasim-pub/frontends/sdl/main.go"
             ],
             "sources": [
                 {
@@ -35,7 +35,7 @@
                 {
                     "type": "git",
                     "path": ".",
-                    "dest": "checkout/src/github.com/andreas-jonsson/fantasim-pub"
+                    "dest": "gopath/src/github.com/andreas-jonsson/fantasim-pub"
                 }
             ]
         }
