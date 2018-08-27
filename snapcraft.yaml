@@ -11,7 +11,7 @@ confinement: strict
 
 parts:
   desktop:
-    source: frontends/tools/package/fantasim-sdl.snap/
+    source: frontends/tools/package/fantasim-sdl_snap/
     plugin: dump
 
   fantasim-sdl:
