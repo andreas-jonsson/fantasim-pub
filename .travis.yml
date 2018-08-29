@@ -39,6 +39,8 @@ script:
     
     #- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then ./frontends/tools/package/build_deb.sh; fi
 
+    - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then ./frontends/tools/package/build_wasm.sh; fi
+
     #- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then flatpak-builder --repo=repo build net.fantasim.Fantasim-SDL.json; fi
     #- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then flatpak build-bundle -v ./repo fantasim-sdl_${FANTASIM_SDL_VERSION}.flatpak net.fantasim.Fantasim-SDL; fi
 

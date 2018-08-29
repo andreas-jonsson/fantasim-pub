@@ -4,6 +4,7 @@
 *.so
 *.dylib
 *.apk
+*.wasm
 
 stage
 parts
