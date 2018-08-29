@@ -61,10 +61,15 @@ func main() {
 		serverAddress = location.Get("host").String()
 	}
 
-	apiWs, err := sys.Dial(fmt.Sprintf("ws://%s/api", serverAddress))
+	protocol := "ws"
+	if location.Get("protocol").String() == "https" {
+		protocol = "wss"
+	}
+
+	apiWs, err := sys.Dial(fmt.Sprintf("%s://%s/api", protocol, serverAddress))
 	assert(err)
 
-	infoWs, err := sys.Dial(fmt.Sprintf("ws://%s/info", serverAddress))
+	infoWs, err := sys.Dial(fmt.Sprintf("%s://%s/info", protocol, serverAddress))
 	assert(err)
 
 	assert(json.NewEncoder(io.MultiWriter(apiWs, infoWs)).Encode(&playerKey))
@@ -74,12 +79,12 @@ func main() {
 	dec := gob.NewDecoder(apiWs)
 	decInfo := gob.NewDecoder(infoWs)
 
-	s := sys.InitWASM(image.Pt(640, 400))
+	s := sys.InitWASM(image.Pt(1280, 720), 1)
 	defer s.Quit()
 
 	assert(game.Initialize(s, s))
 
-	game.GameFps = 10
+	game.GameFps = 15
 	game.RequestFps = 1
 
 	assert(game.Start(enc, dec, decInfo))

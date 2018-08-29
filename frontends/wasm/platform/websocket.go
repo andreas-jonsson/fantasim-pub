@@ -48,7 +48,7 @@ func Dial(addr string) (ws *WebSocket, err error) {
 	sock.Set("binaryType", "arraybuffer")
 
 	connChan := make(chan struct{}, 1)
-	sock.Set("onopen", js.NewEventCallback(js.PreventDefault, func(_ js.Value) {
+	sock.Set("onopen", js.NewEventCallback(js.PreventDefault, func(js.Value) {
 		connChan <- struct{}{}
 	}))
 
@@ -75,19 +75,20 @@ func Dial(addr string) (ws *WebSocket, err error) {
 
 func (ws *WebSocket) readData() error {
 	t := time.NewTimer(time.Millisecond)
-	defer t.Stop()
 
 	select {
 	case data := <-ws.recvChan:
 		ln := data.Length()
 		for i := 0; i < ln; i++ {
 			if err := ws.buf.WriteByte(byte(data.Index(i).Int())); err != nil {
+				t.Stop()
 				return err
 			}
 		}
 	case <-t.C:
-		//default:
 	}
+
+	t.Stop()
 	return nil
 }
 

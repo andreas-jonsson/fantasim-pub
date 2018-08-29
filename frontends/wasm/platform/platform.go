@@ -20,7 +20,6 @@ package platform
 import (
 	"errors"
 	"image"
-	"log"
 	"strconv"
 
 	"syscall/js"
@@ -50,7 +49,7 @@ type WASM struct {
 	mousePos      image.Point
 }
 
-func InitWASM(sz image.Point) *WASM {
+func InitWASM(sz image.Point, scale int) *WASM {
 	s := &WASM{
 		events: make(chan sys.Event, 64),
 		width:  sz.X,
@@ -65,16 +64,14 @@ func InitWASM(sz image.Point) *WASM {
 	canvas.Set("oncontextmenu", js.NewEventCallback(js.PreventDefault, func(js.Value) {}))
 
 	style := canvas.Get("style")
-	style.Set("width", strconv.Itoa(sz.X*2)+"px")
-	style.Set("height", strconv.Itoa(sz.Y*2)+"px")
+	style.Set("width", strconv.Itoa(sz.X*scale)+"px")
+	style.Set("height", strconv.Itoa(sz.Y*scale)+"px")
 	style.Set("cursor", "none")
 
 	document.Get("body").Call("appendChild", canvas)
 	s.context = canvas.Call("getContext", "2d")
 
 	document.Set("onkeydown", js.NewEventCallback(js.PreventDefault, func(e js.Value) {
-		log.Println("onkeydown")
-
 		key := e.Get("key").String()
 		select {
 		case s.events <- &sys.KeyboardEvent{
@@ -87,8 +84,6 @@ func InitWASM(sz image.Point) *WASM {
 	}))
 
 	document.Set("onkeyup", js.NewEventCallback(js.PreventDefault, func(e js.Value) {
-		log.Println("onkeyup")
-
 		key := e.Get("key").String()
 		select {
 		case s.events <- &sys.KeyboardEvent{
@@ -101,8 +96,6 @@ func InitWASM(sz image.Point) *WASM {
 	}))
 
 	document.Set("onmousemove", js.NewEventCallback(js.PreventDefault, func(e js.Value) {
-		log.Println("onmousemove")
-
 		s.mousePos.X = e.Get("clientX").Int()
 		s.mousePos.Y = e.Get("clientY").Int()
 
@@ -123,8 +116,6 @@ func InitWASM(sz image.Point) *WASM {
 	}))
 
 	canvas.Set("onmousedown", js.NewEventCallback(js.PreventDefault, func(e js.Value) {
-		log.Println("onmousedown")
-
 		select {
 		case s.events <- &sys.MouseButtonEvent{
 			Type:   sys.MouseButtonDown,
@@ -137,8 +128,6 @@ func InitWASM(sz image.Point) *WASM {
 	}))
 
 	canvas.Set("onmouseup", js.NewEventCallback(js.PreventDefault, func(e js.Value) {
-		log.Println("onmouseup")
-
 		select {
 		case s.events <- &sys.MouseButtonEvent{
 			Type:   sys.MouseButtonUp,
