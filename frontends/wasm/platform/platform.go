@@ -162,31 +162,14 @@ func (s *WASM) Present(screen image.Image) error {
 		return errors.New("invalid image format")
 	}
 
-	log.Println("present")
-
 	img := s.context.Call("getImageData", 0, 0, s.width, s.height)
 	data := img.Get("data")
-
-	/*
-		g := js.Global()
-		arrBuf := g.Get("ArrayBuffer").New(data.Length())
-		buf8 := g.Get("Uint8ClampedArray").New(arrBuf)
-		buf32 := g.Get("Uint32Array").New(arrBuf)
-		pix := rgbImg.Pix
-
-		for offset := 0; offset < len(pix); offset += 4 {
-			buf32.SetIndex(offset/4, 0xFF000000|(uint(pix[offset+2])<<16)|(uint(pix[offset+1])<<8)|uint(pix[offset]))
-		}
-	*/
-
 	array := js.TypedArrayOf(rgbImg.Pix)
 
 	data.Call("set", array)
 	s.context.Call("putImageData", img, 0, 0)
-
 	array.Release()
 
-	//runtime.Gosched()
 	return nil
 }
 

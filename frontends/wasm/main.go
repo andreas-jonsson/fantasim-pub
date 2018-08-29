@@ -22,11 +22,9 @@ package main
 import (
 	"encoding/gob"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"image"
 	"io"
-	"log"
 	"net/url"
 	"strings"
 	"syscall/js"
@@ -54,7 +52,8 @@ func main() {
 
 	playerKey := v.Get("key")
 	if playerKey == "" {
-		throw(errors.New("invalid parameters"))
+		js.Global().Get("location").Set("href", "http://lobby.fantasim.net")
+		return
 	}
 
 	serverAddress := v.Get("host")
@@ -69,10 +68,7 @@ func main() {
 	assert(err)
 
 	assert(json.NewEncoder(io.MultiWriter(apiWs, infoWs)).Encode(&playerKey))
-
-	if err := json.NewEncoder(apiWs).Encode("gob"); err != nil {
-		log.Fatalln(err)
-	}
+	assert(json.NewEncoder(apiWs).Encode("gob"))
 
 	enc := gob.NewEncoder(apiWs)
 	dec := gob.NewDecoder(apiWs)
@@ -81,9 +77,7 @@ func main() {
 	s := sys.InitWASM(image.Pt(640, 400))
 	defer s.Quit()
 
-	if err := game.Initialize(s, s); err != nil {
-		log.Fatalln(err)
-	}
+	assert(game.Initialize(s, s))
 
 	game.GameFps = 10
 	game.RequestFps = 1

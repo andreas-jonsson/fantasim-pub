@@ -19,7 +19,6 @@ package platform
 
 import (
 	"bytes"
-	"io"
 	"log"
 	"syscall/js"
 	"time"
@@ -75,39 +74,34 @@ func Dial(addr string) (ws *WebSocket, err error) {
 }
 
 func (ws *WebSocket) readData() error {
-	var data js.Value
-	select {
-	case data = <-ws.recvChan:
-	case <-time.After(time.Millisecond):
-	}
+	t := time.NewTimer(time.Millisecond)
+	defer t.Stop()
 
-	ln := data.Length()
-	for i := 0; i < ln; i++ {
-		if err := ws.buf.WriteByte(byte(data.Index(i).Int())); err != nil {
-			return err
+	select {
+	case data := <-ws.recvChan:
+		ln := data.Length()
+		for i := 0; i < ln; i++ {
+			if err := ws.buf.WriteByte(byte(data.Index(i).Int())); err != nil {
+				return err
+			}
 		}
+	case <-t.C:
+		//default:
 	}
 	return nil
 }
 
-func (ws *WebSocket) Read(p []byte) (n int, err error) {
-	if ws.buf.Len() > 0 {
-		n, err = ws.buf.Read(p)
-		if err == io.EOF {
+func (ws *WebSocket) Read(p []byte) (int, error) {
+	for {
+		if err := ws.readData(); err != nil {
+			return 0, err
+		}
+
+		if ws.buf.Len() > 0 {
+			n, _ := ws.buf.Read(p)
 			return n, nil
 		}
-		return
 	}
-
-	if err := ws.readData(); err != nil {
-		return 0, err
-	}
-
-	n, err = ws.buf.Read(p)
-	if err == io.EOF {
-		return n, nil
-	}
-	return
 }
 
 func (ws *WebSocket) Write(p []byte) (n int, err error) {
