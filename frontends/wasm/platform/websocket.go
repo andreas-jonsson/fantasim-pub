@@ -48,12 +48,20 @@ func Dial(addr string) (ws *WebSocket, err error) {
 	sock.Set("binaryType", "arraybuffer")
 
 	connChan := make(chan struct{}, 1)
+	sock.Set("onclose", js.NewEventCallback(js.PreventDefault, func(js.Value) {
+		log.Println("websocket closed")
+	}))
+
+	sock.Set("onerror", js.NewEventCallback(js.PreventDefault, func(js.Value) {
+		log.Println("websocket error")
+	}))
+
 	sock.Set("onopen", js.NewEventCallback(js.PreventDefault, func(js.Value) {
 		connChan <- struct{}{}
 	}))
 
 	jsUint8Array := js.Global().Get("Uint8Array")
-	recvChan := make(chan js.Value, 4096)
+	recvChan := make(chan js.Value, 1024)
 
 	sock.Set("onmessage", js.NewEventCallback(js.PreventDefault, func(e js.Value) {
 		byteArray := jsUint8Array.New(e.Get("data"))
@@ -93,16 +101,15 @@ func (ws *WebSocket) readData() error {
 }
 
 func (ws *WebSocket) Read(p []byte) (int, error) {
-	for {
-		if err := ws.readData(); err != nil {
-			return 0, err
-		}
-
-		if ws.buf.Len() > 0 {
-			n, _ := ws.buf.Read(p)
-			return n, nil
-		}
+	if err := ws.readData(); err != nil {
+		return 0, err
 	}
+
+	if ws.buf.Len() > 0 {
+		n, _ := ws.buf.Read(p)
+		return n, nil
+	}
+	return 0, nil
 }
 
 func (ws *WebSocket) Write(p []byte) (n int, err error) {
