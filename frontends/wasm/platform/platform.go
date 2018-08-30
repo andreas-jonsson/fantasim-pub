@@ -20,6 +20,7 @@ package platform
 import (
 	"errors"
 	"image"
+	"log"
 	"strconv"
 
 	"syscall/js"
@@ -43,10 +44,10 @@ type keyEvent struct {
 }
 
 type WASM struct {
-	context       js.Value
-	events        chan sys.Event
-	width, height int
-	mousePos      image.Point
+	context, canvas js.Value
+	events          chan sys.Event
+	width, height   int
+	mousePos        image.Point
 }
 
 func InitWASM(sz image.Point, scale int) *WASM {
@@ -57,19 +58,42 @@ func InitWASM(sz image.Point, scale int) *WASM {
 	}
 
 	document := js.Global().Get("document")
+	body := document.Get("body")
+
+	loadingText := document.Call("getElementById", "loadingText")
+	body.Call("removeChild", loadingText)
+
 	canvas := document.Call("createElement", "canvas")
+	s.canvas = canvas
+
 	canvas.Call("setAttribute", "width", strconv.Itoa(s.width))
 	canvas.Call("setAttribute", "height", strconv.Itoa(s.height))
-	canvas.Set("imageSmoothingEnabled", false)
+	canvas.Set("imageSmoothingEnabled", true)
 	canvas.Set("oncontextmenu", js.NewEventCallback(js.PreventDefault, func(js.Value) {}))
 
 	style := canvas.Get("style")
-	style.Set("width", strconv.Itoa(sz.X*scale)+"px")
-	style.Set("height", strconv.Itoa(sz.Y*scale)+"px")
+	//style.Set("width", strconv.Itoa(sz.X*scale)+"px")
+	//style.Set("height", strconv.Itoa(sz.Y*scale)+"px")
+	//style.Set("width", "100%")
+	style.Set("height", "100%")
 	style.Set("cursor", "none")
 
-	document.Get("body").Call("appendChild", canvas)
+	body.Call("appendChild", canvas)
 	s.context = canvas.Call("getContext", "2d")
+
+	body.Call("appendChild", document.Call("createElement", "br"))
+
+	fsButton := document.Call("createElement", "input")
+	body.Call("appendChild", fsButton)
+
+	fsButton.Set("type", "button")
+	fsButton.Set("id", "fsButton")
+	fsButton.Set("value", "Fullscreen")
+	fsButton.Set("onclick", js.NewEventCallback(js.PreventDefault, func(e js.Value) {
+		if _, err := s.ToggleFullscreen(); err != nil {
+			log.Println(err)
+		}
+	}))
 
 	document.Set("onkeydown", js.NewEventCallback(js.PreventDefault, func(e js.Value) {
 		key := e.Get("key").String()
@@ -162,8 +186,17 @@ func (s *WASM) Present(screen image.Image) error {
 	return nil
 }
 
+// ToggleFullscreen is only partialy supported because it does not report the state back correctly.
 func (s *WASM) ToggleFullscreen() (bool, error) {
-	return false, errors.New("not supported")
+	c := s.canvas
+	if c.Get("webkitRequestFullScreen").Type() == js.TypeFunction {
+		c.Call("webkitRequestFullScreen")
+	} else if c.Get("mozRequestFullScreen").Type() == js.TypeFunction {
+		c.Call("mozRequestFullScreen")
+	} else {
+		return false, errors.New("not supported")
+	}
+	return true, nil
 }
 
 func (s *WASM) Resolution() image.Point {
