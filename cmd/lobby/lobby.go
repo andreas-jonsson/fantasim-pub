@@ -48,9 +48,9 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 
 	var buf bytes.Buffer
-	fmt.Fprintln(&buf, `<!DOCTYPE html><html><head><title>Fantasim Servers</title></head><body>`)
+	fmt.Fprintln(&buf, `<!DOCTYPE html><html><head><title>Public Servers</title></head><body>`)
 	fmt.Fprintln(&buf, `<iframe src="https://itch.io/embed/189988?linkback=true" width="552" height="167" frameborder="0"></iframe>`)
-	fmt.Fprintln(&buf, `<h1>Fantasim Servers</h1>`)
+	fmt.Fprintln(&buf, `<h1>Public Servers</h1>`)
 
 	gameServers.Range(func(k, v interface{}) bool {
 		key := k.(string)
