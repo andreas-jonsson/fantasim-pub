@@ -59,7 +59,7 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprintf(&buf, `<img width="128" height="128" src="data:image/png;base64,%s"/><br>`, srv.thumbnail)
 		}
 
-		fmt.Fprintf(&buf, `<a href="http://%s">%s (%s)</a><br>`, key, srv.name, key)
+		fmt.Fprintf(&buf, `<a href="http://%s">%s (%s)</a><br><br>`, key, srv.name, key)
 		return true
 	})
 
