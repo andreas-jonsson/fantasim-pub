@@ -1,4 +1,4 @@
-## Fantasim SDL Frontend
+## Fantasim SDL/WASM/Pocket Frontend
 
 **Linux** [![Linux Build](https://build.snapcraft.io/badge/andreas-jonsson/fantasim-pub.svg)](https://build.snapcraft.io/user/andreas-jonsson/fantasim-pub)
 
