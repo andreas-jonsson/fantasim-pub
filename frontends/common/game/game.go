@@ -39,7 +39,7 @@ var (
 
 var (
 	startTime = time.Now()
-	noise     = opensimplex.NewWithSeed(time.Now().UnixNano())
+	noise     = opensimplex.New(time.Now().UnixNano())
 )
 
 func decodePNG(name string) (*image.Paletted, error) {
