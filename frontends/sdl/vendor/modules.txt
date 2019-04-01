@@ -1,6 +1,0 @@
-# github.com/ojrac/opensimplex-go v1.0.1
-github.com/ojrac/opensimplex-go
-# github.com/veandco/go-sdl2 v0.3.0
-github.com/veandco/go-sdl2/sdl
-# golang.org/x/net v0.0.0-20190328230028-74de082e2cca
-golang.org/x/net/websocket
