@@ -1,7 +1,3 @@
-github.com/andreas-jonsson/fantasim-pub v0.0.0-20190331195441-6f2404a8ca8f h1:OT3p5w41+bpyS+Ei1Drala1dSHoLk7nGR4hJCOpgYdk=
-github.com/andreas-jonsson/fantasim-pub v0.0.0-20190331195441-6f2404a8ca8f/go.mod h1:5eFCyLrLg+3NwFRfdC3Rl0GT5TsdwyZGHUUBXijTfV4=
-github.com/andreas-jonsson/fantasim-pub/api v0.0.0-20190331195441-6f2404a8ca8f h1:zu89LO6E5iMKh8YQKF85ZLR8BvcLYGPoMIaq/726SCg=
-github.com/andreas-jonsson/fantasim-pub/api v0.0.0-20190331195441-6f2404a8ca8f/go.mod h1:hJH2hus8/6qfrpkda+m2pItklKKeAjCnVh+K90EBZEo=
 github.com/ojrac/opensimplex-go v1.0.1 h1:XslvpLP6XqQSATUtsOnGBYtFPw7FQ6h6y0ihjVeOLHo=
 github.com/ojrac/opensimplex-go v1.0.1/go.mod h1:MoSgj04tZpH8U0RefZabnHV2AbLgv/2mo3hLJtWqSEs=
 github.com/veandco/go-sdl2 v0.3.0 h1:IWYkHMp8V3v37NsKjszln8FFnX2+ab0538J371t+rss=

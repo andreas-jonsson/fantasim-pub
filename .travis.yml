@@ -1,6 +1,6 @@
 language: go
 go:
-    - "1.11.x"
+    - "1.12.x"
 
 os:
     - linux
@@ -12,6 +12,7 @@ notifications:
         on_failure: always
 
 install:
+    - export GO111MODULE=on
     - export FANTASIM_SDL_SHORT_VERSION=0.0
     - export FANTASIM_SDL_VERSION=${FANTASIM_SDL_SHORT_VERSION}.1
     - export NDK_VERSION=r14b

@@ -10,10 +10,11 @@ clone_folder: c:\gopath\src\github.com\andreas-jonsson\fantasim-pub
 
 environment:
     GOPATH: c:\gopath
+    GO111MODULE: on
 
 install:
-    - appveyor DownloadFile https://storage.googleapis.com/golang/go1.11.windows-amd64.msi
-    - msiexec /i go1.11.windows-amd64.msi /q
+    - appveyor DownloadFile https://storage.googleapis.com/golang/go1.12.1.windows-amd64.msi
+    - msiexec /i go1.12.1.windows-amd64.msi /q
 
     - curl -fsS -o dependencies.7z ftp://46.101.144.81/dependencies.7z
     - 7z x dependencies.7z -ofrontends\tools\package
