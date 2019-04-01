@@ -1,8 +1,13 @@
+# github.com/dennwc/dom v0.3.0
+github.com/dennwc/dom/net/ws
+github.com/dennwc/dom/js
 # github.com/gopherjs/gopherjs v0.0.0-20190328170749-bb2674552d8f
 github.com/gopherjs/gopherjs/js
 # github.com/gopherjs/websocket v0.0.0-20170522004412-87ee47603f13
 github.com/gopherjs/websocket
 github.com/gopherjs/websocket/websocketjs
+# github.com/gorilla/websocket v1.4.0
+github.com/gorilla/websocket
 # github.com/ojrac/opensimplex-go v1.0.1
 github.com/ojrac/opensimplex-go
 # github.com/ungerik/go3d v0.0.0-20190319220834-8e1a82526839

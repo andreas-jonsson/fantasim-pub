@@ -69,7 +69,7 @@ func InitWASM(sz image.Point, scale int) *WASM {
 	canvas.Call("setAttribute", "width", strconv.Itoa(s.width))
 	canvas.Call("setAttribute", "height", strconv.Itoa(s.height))
 	canvas.Set("imageSmoothingEnabled", true)
-	canvas.Set("oncontextmenu", js.NewEventCallback(js.PreventDefault, func(js.Value) {}))
+	canvas.Set("oncontextmenu", js.FuncOf(func(js.Value, []js.Value) interface{} { return nil }))
 
 	style := canvas.Get("style")
 	//style.Set("width", strconv.Itoa(sz.X*scale)+"px")
@@ -89,14 +89,15 @@ func InitWASM(sz image.Point, scale int) *WASM {
 	fsButton.Set("type", "button")
 	fsButton.Set("id", "fsButton")
 	fsButton.Set("value", "Fullscreen")
-	fsButton.Set("onclick", js.NewEventCallback(js.PreventDefault, func(e js.Value) {
+	fsButton.Set("onclick", js.FuncOf(func(js.Value, []js.Value) interface{} {
 		if _, err := s.ToggleFullscreen(); err != nil {
 			log.Println(err)
 		}
+		return nil
 	}))
 
-	document.Set("onkeydown", js.NewEventCallback(js.PreventDefault, func(e js.Value) {
-		key := e.Get("key").String()
+	document.Set("onkeydown", js.FuncOf(func(_ js.Value, e []js.Value) interface{} {
+		key := e[0].Get("key").String()
 		select {
 		case s.events <- &sys.KeyboardEvent{
 			Key:  keyMapping[key],
@@ -105,10 +106,11 @@ func InitWASM(sz image.Point, scale int) *WASM {
 		}:
 		default:
 		}
+		return nil
 	}))
 
-	document.Set("onkeyup", js.NewEventCallback(js.PreventDefault, func(e js.Value) {
-		key := e.Get("key").String()
+	document.Set("onkeyup", js.FuncOf(func(_ js.Value, e []js.Value) interface{} {
+		key := e[0].Get("key").String()
 		select {
 		case s.events <- &sys.KeyboardEvent{
 			Key:  keyMapping[key],
@@ -117,11 +119,12 @@ func InitWASM(sz image.Point, scale int) *WASM {
 		}:
 		default:
 		}
+		return nil
 	}))
 
-	document.Set("onmousemove", js.NewEventCallback(js.PreventDefault, func(e js.Value) {
-		s.mousePos.X = e.Get("clientX").Int()
-		s.mousePos.Y = e.Get("clientY").Int()
+	document.Set("onmousemove", js.FuncOf(func(_ js.Value, e []js.Value) interface{} {
+		s.mousePos.X = e[0].Get("clientX").Int()
+		s.mousePos.Y = e[0].Get("clientY").Int()
 
 		if s.mousePos.X > s.width {
 			s.mousePos.X = s.width
@@ -137,30 +140,33 @@ func InitWASM(sz image.Point, scale int) *WASM {
 		}:
 		default:
 		}
+		return nil
 	}))
 
-	canvas.Set("onmousedown", js.NewEventCallback(js.PreventDefault, func(e js.Value) {
+	canvas.Set("onmousedown", js.FuncOf(func(_ js.Value, e []js.Value) interface{} {
 		select {
 		case s.events <- &sys.MouseButtonEvent{
 			Type:   sys.MouseButtonDown,
 			X:      s.mousePos.X,
 			Y:      s.mousePos.Y,
-			Button: e.Get("button").Int() + 1,
+			Button: e[0].Get("button").Int() + 1,
 		}:
 		default:
 		}
+		return nil
 	}))
 
-	canvas.Set("onmouseup", js.NewEventCallback(js.PreventDefault, func(e js.Value) {
+	canvas.Set("onmouseup", js.FuncOf(func(_ js.Value, e []js.Value) interface{} {
 		select {
 		case s.events <- &sys.MouseButtonEvent{
 			Type:   sys.MouseButtonUp,
 			X:      s.mousePos.X,
 			Y:      s.mousePos.Y,
-			Button: e.Get("button").Int() + 1,
+			Button: e[0].Get("button").Int() + 1,
 		}:
 		default:
 		}
+		return nil
 	}))
 
 	return s

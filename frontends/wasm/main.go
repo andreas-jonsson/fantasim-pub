@@ -31,6 +31,7 @@ import (
 
 	"github.com/andreas-jonsson/fantasim-pub/frontends/common/game"
 	sys "github.com/andreas-jonsson/fantasim-pub/frontends/wasm/platform"
+	"github.com/dennwc/dom/net/ws"
 )
 
 func throw(err error) {
@@ -66,10 +67,10 @@ func main() {
 		protocol = "wss"
 	}
 
-	apiWs, err := sys.Dial(fmt.Sprintf("%s://%s/api", protocol, serverAddress))
+	apiWs, err := ws.Dial(fmt.Sprintf("%s://%s/api", protocol, serverAddress))
 	assert(err)
 
-	infoWs, err := sys.Dial(fmt.Sprintf("%s://%s/info", protocol, serverAddress))
+	infoWs, err := ws.Dial(fmt.Sprintf("%s://%s/info", protocol, serverAddress))
 	assert(err)
 
 	assert(json.NewEncoder(io.MultiWriter(apiWs, infoWs)).Encode(&playerKey))

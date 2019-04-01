@@ -6,6 +6,7 @@ replace github.com/andreas-jonsson/fantasim-pub/api => ../api
 
 require (
 	github.com/andreas-jonsson/fantasim-pub/api v0.0.0-00010101000000-000000000000
+	github.com/dennwc/dom v0.3.0
 	github.com/gopherjs/gopherjs v0.0.0-20190328170749-bb2674552d8f
 	github.com/gopherjs/websocket v0.0.0-20170522004412-87ee47603f13
 	github.com/ojrac/opensimplex-go v1.0.1
