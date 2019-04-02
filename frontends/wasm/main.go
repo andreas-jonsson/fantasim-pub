@@ -80,13 +80,13 @@ func main() {
 	dec := gob.NewDecoder(apiWs)
 	decInfo := gob.NewDecoder(infoWs)
 
-	s := sys.InitWASM(image.Pt(1280, 720), 1)
+	s := sys.InitWASM(image.Pt(1024, 576), 1)
 	defer s.Quit()
 
 	assert(game.Initialize(s, s))
 
-	game.GameFps = 15
-	game.RequestFps = 1
+	//game.GameFps = 15
+	//game.RequestFps = 1
 
 	assert(game.Start(enc, dec, decInfo))
 }
