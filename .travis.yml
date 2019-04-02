@@ -4,7 +4,7 @@ go:
 
 os:
     - linux
-    - osx
+    #- osx
 
 notifications:
     email:
@@ -25,18 +25,18 @@ install:
     - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get install -y rpl; fi
 
     #- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then flatpak install flathub org.freedesktop.Platform//1.6 org.freedesktop.Sdk//1.6; fi
-    - ./frontends/tools/sdl_from_source.sh
+    #- ./frontends/tools/sdl_from_source.sh
 
     #- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then source ./frontends/tools/install_ndk.sh; fi
     #- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then go get golang.org/x/mobile/cmd/gomobile && gomobile init -ndk $ANDROID_NDK_HOME; fi
 
 script:
-    - cd frontends/sdl
-    - go get -v
-    - go build -o fantasim-sdl
-    - cd ../../
+    #- cd frontends/sdl
+    #- go get -v
+    #- go build -o fantasim-sdl
+    #- cd ../../
 
-    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then ./frontends/tools/package/build_app.sh; fi
+    #- if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then ./frontends/tools/package/build_app.sh; fi
     
     #- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then ./frontends/tools/package/build_deb.sh; fi
 
