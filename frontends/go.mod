@@ -2,10 +2,10 @@ module github.com/andreas-jonsson/fantasim-pub/frontends
 
 go 1.12
 
-replace github.com/andreas-jonsson/fantasim-pub/api => ../api
+replace github.com/andreas-jonsson/fantasim-pub/api@v0.0.0 => ../api
 
 require (
-	github.com/andreas-jonsson/fantasim-pub/api v0.0.0
+	github.com/andreas-jonsson/fantasim-pub/api v0.0.0-20190402133813-dd53d4680622
 	github.com/dennwc/dom v0.3.0
 	github.com/gopherjs/gopherjs v0.0.0-20190328170749-bb2674552d8f
 	github.com/gopherjs/websocket v0.0.0-20170522004412-87ee47603f13
